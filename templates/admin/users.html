@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}İstifadəçilər — Admin{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:32px 0 70px;">
+  <div class="admin-nav">
+    <a href="{{ url_for('admin_dashboard') }}">Ümumi baxış</a>
+    <a href="{{ url_for('admin_listings') }}">Elanlar</a>
+    <a href="{{ url_for('admin_users') }}" class="active">İstifadəçilər</a>
+    <a href="{{ url_for('admin_reports') }}">Şikayətlər</a>
+  </div>
+
+  <div class="section-head" style="margin-top:22px;">
+    <h1 style="font-size:22px;margin:0;">İstifadəçilər ({{ rows|length }})</h1>
+    <form method="get" style="display:flex;gap:8px;">
+      <input type="text" name="q" value="{{ q }}" placeholder="Ad, telefon, email..." style="width:220px;">
+      <button type="submit" class="btn btn-outline btn-sm">Axtar</button>
+    </form>
+  </div>
+
+  <div style="overflow-x:auto;">
+  <table class="spec-table">
+    <tr style="font-weight:700;font-size:12.5px;color:var(--ink-soft);">
+      <td>Ad</td><td>Telefon</td><td>Elan sayı</td><td>Statuslar</td><td>Əməliyyat</td>
+    </tr>
+    {% for u in rows %}
+    <tr>
+      <td>{{ u['full_name'] }}{% if u['is_admin'] %} <span class="badge">admin</span>{% endif %}</td>
+      <td class="mono">{{ u['phone'] }}</td>
+      <td>{{ u['listing_count'] }}</td>
+      <td style="font-size:12px;">
+        {% if u['is_verified'] %}<span style="color:var(--gold-deep);">✓ Doğrulanmış</span>{% endif %}
+        {% if u['is_banned'] %}<span style="color:var(--danger);"> · Bloklanıb</span>{% endif %}
+        {% if not u['is_phone_verified'] %}<span style="color:var(--ink-soft);"> · Tel. təsdiqsiz</span>{% endif %}
+      </td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <form method="post" action="{{ url_for('admin_toggle_verified', user_id=u['id']) }}">
+          <button type="submit" class="btn btn-outline btn-sm">{{ 'Doğrulamanı sil' if u['is_verified'] else 'Doğrula' }}</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_toggle_ban', user_id=u['id']) }}" onsubmit="return confirm('Əminsiniz?');">
+          <button type="submit" class="btn btn-danger btn-sm">{{ 'Blokdan çıxar' if u['is_banned'] else 'Blokla' }}</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}

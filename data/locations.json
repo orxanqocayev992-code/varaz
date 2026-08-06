@@ -1,0 +1,59 @@
+{
+  "AE": {
+    "name": "BƏƏ (Dubai)",
+    "flag": "🇦🇪",
+    "cities": {
+      "Dubai": [
+        "Dubai Marina",
+        "Downtown Dubai",
+        "Palm Jumeirah",
+        "Business Bay",
+        "Jumeirah Village Circle (JVC)",
+        "Dubai Hills Estate",
+        "Arabian Ranches",
+        "Jumeirah Beach Residence (JBR)",
+        "Emirates Hills",
+        "Al Barsha",
+        "Dubai Creek Harbour",
+        "Bluewaters Island"
+      ]
+    }
+  },
+  "TR": {
+    "name": "Türkiyə",
+    "flag": "🇹🇷",
+    "cities": {
+      "İstanbul": [
+        "Beşiktaş",
+        "Şişli",
+        "Kadıköy",
+        "Üsküdar",
+        "Başakşehir",
+        "Sarıyer",
+        "Ataşehir",
+        "Beylikdüzü",
+        "Kartal",
+        "Pendik"
+      ],
+      "Ankara": [],
+      "İzmir": [],
+      "Antalya": [],
+      "Alanya": [],
+      "Bodrum": [],
+      "Muğla": [],
+      "Bursa": [],
+      "Mersin": [],
+      "Adana": [],
+      "Konya": [],
+      "Eskişehir": [],
+      "Trabzon": [],
+      "Fethiye": [],
+      "Kemer": [],
+      "Kaş": [],
+      "Side": [],
+      "Belek": [],
+      "Çeşme": [],
+      "Marmaris": []
+    }
+  }
+}

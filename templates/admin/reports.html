@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Şikayətlər — Admin{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:32px 0 70px;">
+  <div class="admin-nav">
+    <a href="{{ url_for('admin_dashboard') }}">Ümumi baxış</a>
+    <a href="{{ url_for('admin_listings') }}">Elanlar</a>
+    <a href="{{ url_for('admin_users') }}">İstifadəçilər</a>
+    <a href="{{ url_for('admin_reports') }}" class="active">Şikayətlər</a>
+  </div>
+
+  <h1 style="font-size:22px;margin:22px 0;">Şikayətlər ({{ rows|length }})</h1>
+
+  {% if rows %}
+  <div class="inbox-list">
+    {% for r in rows %}
+    <div class="inbox-item {{ 'unread' if r['status']=='pending' }}" style="flex-direction:column;align-items:stretch;">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+        <div>
+          <a href="{{ url_for('listing_detail', listing_id=r['listing_id']) }}" style="font-weight:700;">{{ r['listing_title'] }}</a>
+          <div style="font-size:12.5px;color:var(--ink-soft);margin-top:2px;">Səbəb: {{ r['reason'] }} · {{ r['reporter_name'] }} · {{ r['created_at']|timeago }}</div>
+          {% if r['body'] %}<div style="font-size:13px;margin-top:6px;">{{ r['body'] }}</div>{% endif %}
+        </div>
+        <span class="badge" style="flex-shrink:0;">{{ r['status'] }}</span>
+      </div>
+      {% if r['status'] == 'pending' %}
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <form method="post" action="{{ url_for('admin_resolve_report', report_id=r['id']) }}">
+          <input type="hidden" name="action" value="reviewed">
+          <button type="submit" class="btn btn-outline btn-sm">Baxıldı işarələ</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_resolve_report', report_id=r['id']) }}">
+          <input type="hidden" name="action" value="dismissed">
+          <button type="submit" class="btn btn-ghost btn-sm">Rədd et</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_delete_listing', listing_id=r['listing_id']) }}" onsubmit="return confirm('Elan silinsin?');">
+          <button type="submit" class="btn btn-danger btn-sm">Elanı sil</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><p>Şikayət yoxdur.</p></div>
+  {% endif %}
+</div>
+{% endblock %}

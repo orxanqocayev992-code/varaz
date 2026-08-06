@@ -1,0 +1,514 @@
+{% extends "base.html" %}
+{% block title %}Elan yerləşdir — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="padding-top:32px;padding-bottom:70px;">
+
+  <div class="wizard-breadcrumb">
+    <a href="{{ url_for('home') }}">Ana səhifə</a> &nbsp;›&nbsp; Elan yerləşdir
+  </div>
+
+  <div class="wizard-header">
+    <div>
+      <h1 style="font-size:30px;margin-bottom:6px;">Elan yerləşdir</h1>
+      <p style="color:var(--ink-soft);margin:0;">Evinizi, obyektinizi və ya avtomobilinizi minlərlə potensial alıcıya çatdırın.</p>
+    </div>
+    <div class="wizard-badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><path d="M12 3 4 6.5V11c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6.5z"/><path d="M9 12l2 2 4-4"/></svg>
+      <div>
+        <div class="t">Təhlükəsiz və etibarlı</div>
+        <div class="s">Elanlarınız yoxlanılır və təhlükəsiz şəkildə dərc olunur.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step-indicator" id="stepIndicator">
+    <div class="step-item active" data-step="1">
+      <div class="step-circle">1</div>
+      <div class="step-text"><div class="t">Elan növü</div><div class="s">Kateqoriya seçin</div></div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="2">
+      <div class="step-circle">2</div>
+      <div class="step-text"><div class="t">Məlumatlar</div><div class="s">Əsas məlumatları daxil edin</div></div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="3">
+      <div class="step-circle">3</div>
+      <div class="step-text"><div class="t">Əlavələr</div><div class="s">Şəkil və əlavə məlumat</div></div>
+    </div>
+    <div class="step-line"></div>
+    <div class="step-item" data-step="4">
+      <div class="step-circle">4</div>
+      <div class="step-text"><div class="t">Nəzərdən keçirin</div><div class="s">Elanı yoxlayıb dərc edin</div></div>
+    </div>
+  </div>
+
+  <form method="post" enctype="multipart/form-data" id="listingForm">
+    <div class="wizard-layout">
+      <div class="wizard-main">
+
+        <!-- STEP 1 -->
+        <div class="wizard-step-section active" data-step="1">
+          <h3 style="font-size:18px;margin-bottom:4px;">Elan növünü seçin</h3>
+          <p style="font-size:13px;color:var(--ink-soft);margin:0 0 18px;">Zəhmət olmasa elanınızın növünü seçin</p>
+
+          <div class="type-card-grid">
+            <label class="type-card selected" id="cardEmlak">
+              <input type="radio" name="type" value="emlak" checked id="typeEmlak" style="position:absolute;opacity:0;">
+              <span class="check">✓</span>
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-6h6v6"/></svg></div>
+              <h3>Əmlak</h3>
+              <p>Ev, mənzil, obyekt, torpaq və digər əmlak elanları</p>
+            </label>
+
+            <label class="type-card" id="cardNeqliyyat">
+              <input type="radio" name="type" value="neqliyyat" id="typeNeqliyyat" style="position:absolute;opacity:0;">
+              <span class="check">✓</span>
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><rect x="3" y="11" width="18" height="7" rx="2"/><path d="M19 13h2.5M6 8V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/><circle cx="7.5" cy="18" r="1.6"/><circle cx="16.5" cy="18" r="1.6"/></svg></div>
+              <h3>Nəqliyyat</h3>
+              <p>Avtomobil, motosiklet, yük maşını və digər nəqliyyat vasitələri</p>
+            </label>
+
+            <label class="type-card" id="cardAbroad">
+              <input type="radio" name="type" value="emlak" id="typeAbroad" data-abroad="1" style="position:absolute;opacity:0;">
+              <span class="new-tag">Yeni</span>
+              <span class="check">✓</span>
+              <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.7 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.7-3.8-9S9.5 5.5 12 3z"/></svg></div>
+              <h3>Xaricdə mənzil</h3>
+              <p>Xaricdə ev və mənzil elanlarınızı asanlıqla yerləşdirin</p>
+            </label>
+          </div>
+
+          <div class="field" id="categoryField" style="margin-top:24px;">
+            <label>Alt kateqoriyanı seçin</label>
+            <select id="categorySelect" name="category" style="display:none;"></select>
+            <input type="hidden" id="abroadCategoryInput" name="category" value="xaricdə evlər" disabled>
+            <div class="subcat-grid" id="subcatGrid"></div>
+          </div>
+        </div>
+
+        <!-- STEP 2 -->
+        <div class="wizard-step-section" data-step="2">
+          <h3 style="font-size:18px;margin-bottom:18px;">Əsas məlumatlar</h3>
+
+          <div id="sharedFieldsBlock">
+            <div class="field">
+              <label>Başlıq</label>
+              <input type="text" id="titleInput" name="title" placeholder="məs. Yasamalda 3 otaqlı təmirli mənzil" required value="{{ form.title if form else '' }}">
+            </div>
+
+            <div class="field">
+              <label>Təsvir</label>
+              <textarea name="description" rows="4" placeholder="Ətraflı məlumat yazın...">{{ form.description if form else '' }}</textarea>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label>Qiymət</label>
+                <div style="display:flex;gap:8px;">
+                  <input type="number" step="1" id="priceInput" name="price" required value="{{ form.price if form else '' }}" style="flex:1;">
+                  <select name="currency" style="width:90px;flex-shrink:0;">
+                    {% for c in currencies %}<option value="{{ c }}" {{ 'selected' if form and form.currency==c }}>{{ c }}</option>{% endfor %}
+                  </select>
+                </div>
+              </div>
+              <div class="field" id="cityField">
+                <label>Şəhər</label>
+                <input type="text" id="cityInput" name="city" list="cityList" required value="{{ form.city if form else '' }}">
+                <datalist id="cityList"></datalist>
+              </div>
+            </div>
+
+            <div class="field" id="districtField">
+              <label>Rayon / ərazi (istəyə görə)</label>
+              <input type="text" id="districtInput" name="district" value="{{ form.district if form else '' }}">
+            </div>
+
+            <div id="abroadLocationFields" style="display:none;">
+              <h3 style="font-size:15px;margin-top:6px;">🌍 Xaricdə yerləşmə</h3>
+              <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 14px;">Əvvəlcə ölkəni seçin, şəhər və rayon siyahısı ona görə yenilənəcək.</p>
+              <div class="field-row">
+                <div class="field">
+                  <label>Ölkə</label>
+                  <select id="countrySelect" name="country" disabled></select>
+                </div>
+                <div class="field">
+                  <label>Şəhər</label>
+                  <select id="abroadCitySelect" name="city" disabled></select>
+                </div>
+              </div>
+              <div class="field">
+                <label>Rayon / ərazi (istəyə görə)</label>
+                <select id="abroadDistrictSelect" name="district" disabled></select>
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field">
+                <label>Əlaqə nömrəsi <span class="req">*</span></label>
+                <input type="text" name="contact_phone" placeholder="0501234567" required value="{{ form.contact_phone if form else '' }}">
+              </div>
+              <div class="field">
+                <label>Əlavə telefon</label>
+                <input type="text" name="contact_phone2" placeholder="istəyə görə" value="{{ form.contact_phone2 if form else '' }}">
+              </div>
+            </div>
+            <div class="field">
+              <label>WhatsApp nömrəsi</label>
+              <input type="text" name="contact_whatsapp" placeholder="istəyə görə" value="{{ form.contact_whatsapp if form else '' }}">
+            </div>
+
+            <div class="checkbox-row field">
+              <input type="checkbox" name="negotiable" id="negotiable">
+              <label for="negotiable" style="margin:0;">Razılaşma mümkündür</label>
+            </div>
+          </div>
+
+          <div id="sharedFieldsAnchor"></div>
+
+          <div id="propertyFields">
+            <h3 style="font-size:15px;margin-top:22px;">Əmlak məlumatları</h3>
+            {% if residences %}
+            <div class="field" id="residenceField">
+              <label>Yaşayış kompleksi (istəyə görə)</label>
+              <select name="residence_id">
+                <option value="">Seçilməyib</option>
+                {% for r in residences %}<option value="{{ r['id'] }}">{{ r['name'] }}</option>{% endfor %}
+              </select>
+              <div style="font-size:12px;color:var(--ink-soft);margin-top:5px;">Mənziliniz bu komplekslərdən birindədirsə seçin — elanınız həmin layihənin səhifəsində də görünəcək.</div>
+            </div>
+            {% endif %}
+            <div class="field-row">
+              <div class="field"><label>Otaq sayı</label><input type="number" name="rooms"></div>
+              <div class="field"><label>Sahə (m²)</label><input type="number" name="area_m2"></div>
+            </div>
+            <div class="field-row">
+              <div class="field"><label>Mərtəbə</label><input type="number" name="floor"></div>
+              <div class="field"><label>Ümumi mərtəbə</label><input type="number" name="floors_total"></div>
+            </div>
+            <div class="field-row">
+              <div class="field">
+                <label>Bina tipi</label>
+                <select name="building_type">
+                  <option value="yeni tikili">Yeni tikili</option>
+                  <option value="köhnə tikili">Köhnə tikili</option>
+                  <option value="fərdi">Fərdi ev</option>
+                </select>
+              </div>
+              <div class="field">
+                <label>Təmir</label>
+                <select name="repair_status">
+                  <option value="təmirli">Təmirli</option>
+                  <option value="orta">Orta</option>
+                  <option value="təmirsiz">Təmirsiz</option>
+                </select>
+              </div>
+            </div>
+            <div class="field">
+              <label>Əməliyyat</label>
+              <select name="deal_type">
+                <option value="satılır">Satılır</option>
+                <option value="kirayə">Kirayə verilir</option>
+              </select>
+            </div>
+          </div>
+
+          <div id="sparePartFields" style="display:none;">
+            <h3 style="font-size:15px;margin-top:22px;">Ehtiyat hissəsi məlumatları</h3>
+            <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;">Hissənin hansı marka/model üçün uyğun olduğunu qeyd edin.</p>
+            <div class="field-row">
+              <div class="field">
+                <label>Uyğun olduğu marka</label>
+                <select name="make">
+                  <option value="">Bütün markalar üçün</option>
+                  {% for m in vehicle_makes %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+                </select>
+              </div>
+              <div class="field">
+                <label>Uyğun olduğu model (istəyə görə)</label>
+                <input type="text" name="model" placeholder="məs. E-Class, Tucson">
+              </div>
+            </div>
+            <div class="field">
+              <label>Hissənin vəziyyəti</label>
+              <div class="chip-list">
+                <label class="chip" style="cursor:pointer;"><input type="radio" name="condition_status" value="yeni" checked style="width:auto;display:inline;margin-right:6px;">Yeni</label>
+                <label class="chip" style="cursor:pointer;"><input type="radio" name="condition_status" value="işlənmiş" style="width:auto;display:inline;margin-right:6px;">İşlənmiş</label>
+              </div>
+            </div>
+          </div>
+
+          <div id="vehicleFields" style="display:none;" class="turbo-wizard">
+            <div class="field" style="margin-top:22px;">
+              <label>Əməliyyat</label>
+              <div class="chip-list">
+                <label class="chip" style="cursor:pointer;"><input type="radio" name="vehicle_deal_type" value="satılır" checked style="width:auto;display:inline;margin-right:6px;">Satılır</label>
+                <label class="chip" style="cursor:pointer;"><input type="radio" name="vehicle_deal_type" value="kirayə" style="width:auto;display:inline;margin-right:6px;">İcarəyə verilir</label>
+              </div>
+            </div>
+            <h3 style="font-size:15px;margin-top:18px;">Nəqliyyat məlumatları</h3>
+            <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;">Hər sahəni doldurduqca növbəti addım açılacaq.</p>
+
+            <div class="turbo-step" data-turbo-step="make">
+              <label>Marka <span class="req">*</span></label>
+              <select id="makeSelect" name="make" {{ 'required' if not form or form.type=='neqliyyat' }}>
+                <option value="">Seçin</option>
+                {% for m in vehicle_makes %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+              </select>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="model">
+              <label>Model <span class="req">*</span></label>
+              <input type="text" name="model" id="modelInput" placeholder="məs. Camry" autocomplete="off" disabled>
+              <div class="model-grid" id="modelGrid"></div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="year">
+              <label>Buraxılış ili <span class="req">*</span></label>
+              <select name="year" disabled>
+                <option value="">Seçin</option>
+                {% for y in range(2026, 1959, -1) %}<option value="{{ y }}">{{ y }}</option>{% endfor %}
+              </select>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="body_type">
+              <label>Ban növü <span class="req">*</span></label>
+              <div class="turbo-chip-grid">
+                {% for bt in vehicle_body_types %}
+                <label class="turbo-chip"><input type="radio" name="body_type" value="{{ bt|lower }}" disabled>{{ bt }}</label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="fuel_type">
+              <label>Yanacaq növü <span class="req">*</span></label>
+              <div class="turbo-chip-grid">
+                {% for val, lbl in vehicle_fuel_types %}
+                <label class="turbo-chip"><input type="radio" name="fuel_type" value="{{ val }}" disabled>{{ lbl }}</label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="drivetrain">
+              <label>Ötürücü <span class="req">*</span></label>
+              <div class="turbo-chip-grid">
+                {% for val, lbl in vehicle_drivetrains %}
+                <label class="turbo-chip"><input type="radio" name="drivetrain" value="{{ val }}" disabled>{{ lbl }}</label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="transmission">
+              <label>Sürətlər qutusu <span class="req">*</span></label>
+              <div class="turbo-chip-grid">
+                {% for val, lbl in vehicle_transmissions %}
+                <label class="turbo-chip"><input type="radio" name="transmission" value="{{ val }}" disabled>{{ lbl }}</label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="modification">
+              <label>Modifikasiya <span class="req">*</span></label>
+              <input type="text" name="modification" placeholder="məs. 2.0 Turbo, 3.5 V6, 2.0 TDI" disabled>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="color">
+              <label>Rəng <span class="req">*</span></label>
+              <div class="turbo-swatches">
+                {% for val, lbl, hex in vehicle_colors %}
+                <label class="turbo-swatch" style="background:{{ hex }};" title="{{ lbl }}">
+                  <input type="radio" name="color" value="{{ val }}" disabled>
+                </label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="market">
+              <label>Hansı bazar üçün yığılıb? <span class="req">*</span></label>
+              <div class="turbo-chip-grid">
+                {% for m in vehicle_markets %}
+                <label class="turbo-chip"><input type="radio" name="market" value="{{ m }}" disabled>{{ m }}</label>
+                {% endfor %}
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="mileage">
+              <label>Yürüş <span class="req">*</span></label>
+              <div style="display:flex;gap:8px;">
+                <input type="number" name="mileage_km" placeholder="məs. 65000" style="flex:1;" disabled>
+                <select name="mileage_unit" style="width:100px;flex-shrink:0;" disabled>
+                  <option value="km">KM</option>
+                  <option value="mil">MIL</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="equipment">
+              <label>Avtomobilin təchizatı</label>
+              <div class="turbo-check-grid">
+                {% for eq in vehicle_equipment %}
+                <label class="turbo-check-item"><input type="checkbox" name="equipment" value="{{ eq }}" disabled>{{ eq }}</label>
+                {% endfor %}
+              </div>
+              <div style="display:flex;gap:8px;margin-top:10px;">
+                <input type="text" id="customEquipmentInput" placeholder="Əlavə təchizat yazın..." disabled>
+                <button type="button" id="addEquipmentBtn" class="btn btn-outline btn-sm" disabled>Əlavə et</button>
+              </div>
+              <div class="turbo-check-grid" id="customEquipmentList"></div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="condition">
+              <label>Avtomobilin vəziyyəti</label>
+              <div class="turbo-condition-row">
+                <span>Vuruğu var?</span>
+                <div class="turbo-yesno" data-name="is_crashed">
+                  <button type="button" data-val="yes" disabled>Bəli</button>
+                  <button type="button" data-val="no" class="active" disabled>Xeyr</button>
+                </div>
+                <input type="hidden" name="is_crashed" value="no">
+              </div>
+              <div class="turbo-condition-row">
+                <span>Rənglənib?</span>
+                <div class="turbo-yesno" data-name="is_painted">
+                  <button type="button" data-val="yes" disabled>Bəli</button>
+                  <button type="button" data-val="no" class="active" disabled>Xeyr</button>
+                </div>
+                <input type="hidden" name="is_painted" value="no">
+              </div>
+              <div class="turbo-condition-row">
+                <span>Qəzalı / ehtiyat hissələri üçün?</span>
+                <div class="turbo-yesno" data-name="is_for_parts">
+                  <button type="button" data-val="yes" disabled>Bəli</button>
+                  <button type="button" data-val="no" class="active" disabled>Xeyr</button>
+                </div>
+                <input type="hidden" name="is_for_parts" value="no">
+              </div>
+            </div>
+
+            <div class="turbo-step locked" data-turbo-step="vin">
+              <label>VIN kod (istəyə görə)</label>
+              <input type="text" name="vin_code" id="vinInput" maxlength="17" placeholder="17 simvoldan ibarət VIN kod" disabled style="text-transform:uppercase;">
+              <div class="location-hint" id="vinHint">VIN kod avtomobilin unikal identifikasiya nömrəsidir (17 simvol).</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP 3 -->
+        <div class="wizard-step-section" data-step="3">
+          <h3 style="font-size:18px;margin-bottom:18px;">Şəkil və əlavə məlumat</h3>
+
+          <div class="field">
+            <label>Şəkillər <span class="req" id="imagesReqMark" style="display:none;">*</span></label>
+            <div class="location-hint" style="margin:0 0 10px;color:var(--danger);">
+              ⚠ Qadağandır: skrinşotlar, çərçivəli şəkillər və ekran görüntüləri.
+            </div>
+            <div class="img-uploader" id="imgDropzone">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+              <div style="font-weight:600;font-size:13.5px;">Şəkilləri buraya sürükləyin və ya klikləyin</div>
+              <div style="margin-top:4px;font-size:12px;color:var(--ink-soft);">JPG, PNG və ya WEBP · minimum 3, maksimum 21 şəkil</div>
+              <input type="file" name="images" id="imagesInput" multiple accept=".png,.jpg,.jpeg,.webp" style="display:none;">
+            </div>
+            <div class="img-preview-grid" id="imagePreview"></div>
+            <div class="location-hint" id="imageCountHint">0 şəkil seçilib. Sürükləyib sıralaya, üzərinə gələndə "Əsas et" ilə əsas şəkli təyin edə bilərsiniz.</div>
+          </div>
+
+          <div class="field">
+            <label>Yerləşmə (xəritədə seçin, istəyə görə)</label>
+            <div id="pickerMap" class="location-picker-map"></div>
+            <div class="location-hint">Xəritəyə klikləyərək dəqiq yerləşməni işarələyə bilərsiniz.</div>
+            <input type="hidden" name="latitude" id="latInput">
+            <input type="hidden" name="longitude" id="lngInput">
+          </div>
+        </div>
+
+        <!-- STEP 4 -->
+        <div class="wizard-step-section" data-step="4">
+          <h3 style="font-size:18px;margin-bottom:6px;">Elanı nəzərdən keçirin</h3>
+          <p style="font-size:13px;color:var(--ink-soft);margin:0 0 20px;">Məlumatları yoxlayın və elanı dərc edin. Dərc etdikdən sonra "Elanlarım" bölməsindən istənilən vaxt redaktə edə bilərsiniz.</p>
+          <div style="background:var(--surface-alt);border:1px solid var(--line);border-radius:var(--radius-sm);padding:18px;">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);"><span style="color:var(--ink-soft);font-size:13.5px;">Başlıq</span><span id="reviewTitle" style="font-weight:600;font-size:13.5px;">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--line);"><span style="color:var(--ink-soft);font-size:13.5px;">Qiymət</span><span id="reviewPrice" style="font-weight:600;font-size:13.5px;">—</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;"><span style="color:var(--ink-soft);font-size:13.5px;">Şəhər</span><span id="reviewCity" style="font-weight:600;font-size:13.5px;">—</span></div>
+          </div>
+        </div>
+
+        <div class="wizard-actions">
+          <button type="button" class="btn btn-outline" id="wizardBack" style="visibility:hidden;">← Geri</button>
+          <button type="button" class="btn btn-brass" id="wizardNext">Davam et →</button>
+          <button type="submit" class="btn btn-brass" id="wizardSubmit" style="display:none;">Elanı dərc et</button>
+        </div>
+
+      </div>
+
+      <div class="wizard-sidebar">
+        <div class="wizard-tip-card">
+          <h3>Elan yerləşdirmə qaydaları</h3>
+          <div class="tip-item">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></svg></div>
+            <div><div class="t">Doğru kateqoriya seçin</div><div class="s">Elanınızın doğru kateqoriyada yerləşdirilməsi daha çox baxış gətirir.</div></div>
+          </div>
+          <div class="tip-item">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg></div>
+            <div><div class="t">Dəqiq məlumat daxil edin</div><div class="s">Qiymət, ünvan və digər məlumatları düzgün daxil edin.</div></div>
+          </div>
+          <div class="tip-item">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg></div>
+            <div><div class="t">Keyfiyyətli şəkillər yükləyin</div><div class="s">Aydın və keyfiyyətli şəkillər elanınıza daha çox maraq yaradır.</div></div>
+          </div>
+          <div class="tip-item">
+            <div class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.8 19.8 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.12.9.34 1.78.66 2.61a2 2 0 0 1-.45 2.11L8.09 9.67a16 16 0 0 0 6 6l1.23-1.23a2 2 0 0 1 2.11-.45c.83.32 1.71.54 2.61.66A2 2 0 0 1 22 16.92z"/></svg></div>
+            <div><div class="t">Əlaqə məlumatları</div><div class="s">Alıcıların sizinlə rahat əlaqə saxlaması üçün əlaqə məlumatlarınızı qeyd edin.</div></div>
+          </div>
+        </div>
+
+        <div class="wizard-support-card">
+          <div style="font-weight:700;font-size:14px;">Köməyə ehtiyacınız var?</div>
+          <p>Dəstək komandamız sizə kömək etmək üçün hazırdır.</p>
+          <a href="{{ url_for('about') }}">Dəstək mərkəzinə keçin →</a>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  <div class="trust-grid" style="margin-top:36px;border-top:1px solid var(--line);padding-top:24px;">
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5V11c0 5 3.5 8.5 8 10 4.5-1.5 8-5 8-10V6.5z"/></svg>
+      <div><div>Təhlükəsiz əməliyyat</div><div style="font-size:11.5px;color:var(--ink-soft);font-weight:400;">Məlumatlarınız qorunur</div></div>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.5.3 4.5 2.5 4.5 5.8"/></svg>
+      <div><div>Geniş auditoriya</div><div style="font-size:11.5px;color:var(--ink-soft);font-weight:400;">Minlərlə potensial alıcı</div></div>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/></svg>
+      <div><div>Tez və asan</div><div style="font-size:11.5px;color:var(--ink-soft);font-weight:400;">Sadə addımlarla elan yerləşdirin</div></div>
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      <div><div>Etibarlı platforma</div><div style="font-size:11.5px;color:var(--ink-soft);font-weight:400;">Doğrulanmış elan sistemi</div></div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    wireLocationPicker('pickerMap', 'latInput', 'lngInput', null, null);
+    wireAbroadLocationPicker({{ countries|tojson }});
+    wireWizard();
+    wireTurboWizard();
+    wireMakeModelGrid(document.getElementById('makeSelect'), document.getElementById('modelInput'), document.getElementById('modelGrid'));
+    wireImageUploader('#imagesInput', 'imagePreview', 'imgDropzone');
+    var urlParams = new URLSearchParams(window.location.search);
+    var presetResidence = urlParams.get('residence_id');
+    var residenceSelect = document.querySelector('select[name="residence_id"]');
+    if (presetResidence && residenceSelect) residenceSelect.value = presetResidence;
+  });
+</script>
+{% endblock %}

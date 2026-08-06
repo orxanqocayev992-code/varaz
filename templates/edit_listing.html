@@ -1,0 +1,337 @@
+{% extends "base.html" %}
+{% block title %}Elanı redaktə et — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:760px;padding-top:40px;padding-bottom:80px;">
+  <h1 style="font-size:30px;">Elanı redaktə et</h1>
+  <p style="color:var(--ink-soft);margin-bottom:30px;">Elanınızın məlumatlarını yeniləyin.</p>
+
+  <form method="post" enctype="multipart/form-data" class="form-card">
+
+    <div class="field">
+      <label>Elan növü</label>
+      <span class="badge">{{ 'Əmlak' if listing['type']=='emlak' else 'Nəqliyyat' }}</span>
+      <div style="font-size:12.5px;color:var(--ink-soft);margin-top:6px;">Elan növü yaradıldıqdan sonra dəyişdirilə bilməz.</div>
+    </div>
+
+    <div class="field">
+      <label>Kateqoriya</label>
+      <select id="categorySelect" name="category">
+        {% set cats = property_categories if listing['type']=='emlak' else vehicle_categories %}
+        {% for c in cats %}
+          <option value="{{ c }}" {{ 'selected' if (form.category if form else listing['category'])==c }}>{{ c|capitalize }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="field">
+      <label>Başlıq</label>
+      <input type="text" name="title" required value="{{ form.title if form else listing['title'] }}">
+    </div>
+
+    <div class="field">
+      <label>Təsvir</label>
+      <textarea name="description" rows="4">{{ form.description if form else (listing['description'] or '') }}</textarea>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Qiymət</label>
+        <div style="display:flex;gap:8px;">
+          <input type="number" step="1" name="price" required value="{{ form.price if form else listing['price']|int }}" style="flex:1;">
+          <select name="currency" style="width:90px;flex-shrink:0;">
+            {% for c in currencies %}<option value="{{ c }}" {{ 'selected' if listing['currency']==c }}>{{ c }}</option>{% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field" id="cityField">
+        <label>Şəhər</label>
+        <input type="text" id="cityInput" name="city" list="cityList" required value="{{ form.city if form else listing['city'] }}">
+        <datalist id="cityList"></datalist>
+      </div>
+    </div>
+
+    <div class="field" id="districtField">
+      <label>Rayon / ərazi (istəyə görə)</label>
+      <input type="text" id="districtInput" name="district" value="{{ form.district if form else (listing['district'] or '') }}">
+    </div>
+
+    <div id="abroadLocationFields" style="display:none;">
+      <div class="field-row">
+        <div class="field">
+          <label>Ölkə</label>
+          <select id="countrySelect" name="country" disabled></select>
+        </div>
+        <div class="field">
+          <label>Şəhər</label>
+          <select id="abroadCitySelect" name="city" disabled></select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Rayon / ərazi (istəyə görə)</label>
+        <select id="abroadDistrictSelect" name="district" disabled></select>
+      </div>
+    </div>
+
+    <div class="field-row">
+      <div class="field">
+        <label>Əlaqə nömrəsi</label>
+        <input type="text" name="contact_phone" value="{{ form.contact_phone if form else (listing['contact_phone'] or '') }}">
+      </div>
+      <div class="field">
+        <label>Əlavə telefon</label>
+        <input type="text" name="contact_phone2" value="{{ form.contact_phone2 if form else (listing['contact_phone2'] or '') }}">
+      </div>
+    </div>
+    <div class="field">
+      <label>WhatsApp nömrəsi</label>
+      <input type="text" name="contact_whatsapp" value="{{ form.contact_whatsapp if form else (listing['contact_whatsapp'] or '') }}">
+    </div>
+
+    <div class="checkbox-row field">
+      <input type="checkbox" name="negotiable" id="negotiable" {{ 'checked' if listing['is_negotiable'] }}>
+      <label for="negotiable" style="margin:0;">Razılaşma mümkündür</label>
+    </div>
+
+    {% if listing['type'] == 'emlak' %}
+    <div>
+      <h3 style="font-size:16px;margin-top:24px;">Əmlak məlumatları</h3>
+      {% if residences %}
+      <div class="field" id="residenceField">
+        <label>Yaşayış kompleksi (istəyə görə)</label>
+        <select name="residence_id">
+          <option value="">Seçilməyib</option>
+          {% for r in residences %}
+            <option value="{{ r['id'] }}" {{ 'selected' if listing['residence_id']==r['id'] }}>{{ r['name'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+      <div class="field-row">
+        <div class="field"><label>Otaq sayı</label><input type="number" name="rooms" value="{{ details['rooms'] if details else '' }}"></div>
+        <div class="field"><label>Sahə (m²)</label><input type="number" name="area_m2" value="{{ details['area_m2'] if details else '' }}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Mərtəbə</label><input type="number" name="floor" value="{{ details['floor'] if details else '' }}"></div>
+        <div class="field"><label>Ümumi mərtəbə</label><input type="number" name="floors_total" value="{{ details['floors_total'] if details else '' }}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Bina tipi</label>
+          <select name="building_type">
+            {% for bt in building_types %}
+              <option value="{{ bt }}" {{ 'selected' if details and details['building_type']==bt }}>{{ bt|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Təmir</label>
+          <select name="repair_status">
+            <option value="təmirli" {{ 'selected' if details and details['repair_status']=='təmirli' }}>Təmirli</option>
+            <option value="orta" {{ 'selected' if details and details['repair_status']=='orta' }}>Orta</option>
+            <option value="təmirsiz" {{ 'selected' if details and details['repair_status']=='təmirsiz' }}>Təmirsiz</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Əməliyyat</label>
+        <select name="deal_type">
+          <option value="satılır" {{ 'selected' if details and details['deal_type']=='satılır' }}>Satılır</option>
+          <option value="kirayə" {{ 'selected' if details and details['deal_type']=='kirayə' }}>Kirayə verilir</option>
+        </select>
+      </div>
+    </div>
+    {% else %}
+    <div>
+      <h3 style="font-size:16px;margin-top:24px;">Nəqliyyat məlumatları</h3>
+      <div class="field-row">
+        <div class="field">
+          <label>Marka</label>
+          <select id="makeSelect" name="make">
+            <option value="">Seçin</option>
+            {% for m in vehicle_makes %}
+              <option value="{{ m }}" {{ 'selected' if details and details['make']==m }}>{{ m }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field"><label>Model</label><input type="text" name="model" list="modelList" value="{{ details['model'] if details else '' }}"></div>
+      </div>
+      <datalist id="modelList"></datalist>
+      <div class="field-row">
+        <div class="field"><label>Buraxılış ili</label><input type="number" name="year" min="1950" max="2026" value="{{ details['year'] if details else '' }}"></div>
+        <div class="field"><label>Yürüş (km)</label><input type="number" name="mileage_km" value="{{ details['mileage_km'] if details else '' }}"></div>
+      </div>
+      <div class="field-row">
+        <div class="field"><label>Mühərrik həcmi (L)</label><input type="number" step="0.1" name="engine_volume" value="{{ details['engine_volume'] if details else '' }}"></div>
+        <div class="field">
+          <label>Yanacaq növü</label>
+          <select name="fuel_type">
+            {% for f in ['benzin','dizel','qaz','hibrid','elektro'] %}
+              <option value="{{ f }}" {{ 'selected' if details and details['fuel_type']==f }}>{{ f|capitalize }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Sürətlər qutusu</label>
+          <select name="transmission">
+            <option value="avtomat" {{ 'selected' if details and details['transmission']=='avtomat' }}>Avtomat</option>
+            <option value="manual" {{ 'selected' if details and details['transmission']=='manual' }}>Mexaniki</option>
+          </select>
+        </div>
+        <div class="field"><label>Rəng</label><input type="text" name="color" value="{{ details['color'] if details else '' }}"></div>
+      </div>
+      <div class="field">
+        <label>Əməliyyat</label>
+        <select name="vehicle_deal_type">
+          <option value="satılır" {{ 'selected' if details and details['deal_type']=='satılır' }}>Satılır</option>
+          <option value="kirayə" {{ 'selected' if details and details['deal_type']=='kirayə' }}>İcarəyə verilir</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Ban növü</label>
+          <select name="body_type">
+            {% for bt in vehicle_body_types %}
+              <option value="{{ bt|lower }}" {{ 'selected' if details and details['body_type']==bt|lower }}>{{ bt }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="field">
+          <label>Ötürücü</label>
+          <select name="drivetrain">
+            {% for val, lbl in vehicle_drivetrains %}
+              <option value="{{ val }}" {{ 'selected' if details and details['drivetrain']==val }}>{{ lbl }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Modifikasiya</label>
+          <input type="text" name="modification" placeholder="məs. 2.0 Turbo" value="{{ details['modification'] if details else '' }}">
+        </div>
+        <div class="field">
+          <label>Hansı bazar üçün yığılıb?</label>
+          <select name="market">
+            <option value="">Seçilməyib</option>
+            {% for m in vehicle_markets %}
+              <option value="{{ m }}" {{ 'selected' if details and details['market']==m }}>{{ m }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Yürüş vahidi</label>
+        <select name="mileage_unit" style="max-width:160px;">
+          <option value="km" {{ 'selected' if details and details['mileage_unit']=='km' }}>KM</option>
+          <option value="mil" {{ 'selected' if details and details['mileage_unit']=='mil' }}>MIL</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>VIN kod</label>
+        <input type="text" name="vin_code" maxlength="17" style="text-transform:uppercase;" value="{{ details['vin_code'] if details else '' }}">
+      </div>
+      <div class="field">
+        <label>Avtomobilin təchizatı</label>
+        <div class="chip-list">
+          {% set current_equipment = (details['equipment'] or '').split(',') if details else [] %}
+          {% for eq in vehicle_equipment %}
+          <label class="chip" style="cursor:pointer;"><input type="checkbox" name="equipment" value="{{ eq }}" {{ 'checked' if eq in current_equipment }} style="width:auto;display:inline;margin-right:6px;">{{ eq }}</label>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Vuruğu var?</label>
+          <select name="is_crashed">
+            <option value="no" {{ 'selected' if not (details and details['is_crashed']) }}>Xeyr</option>
+            <option value="yes" {{ 'selected' if details and details['is_crashed'] }}>Bəli</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Rənglənib?</label>
+          <select name="is_painted">
+            <option value="no" {{ 'selected' if not (details and details['is_painted']) }}>Xeyr</option>
+            <option value="yes" {{ 'selected' if details and details['is_painted'] }}>Bəli</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Qəzalı / ehtiyat hissələri üçün?</label>
+        <select name="is_for_parts" style="max-width:220px;">
+          <option value="no" {{ 'selected' if not (details and details['is_for_parts']) }}>Xeyr</option>
+          <option value="yes" {{ 'selected' if details and details['is_for_parts'] }}>Bəli</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Vəziyyət (ümumi)</label>
+        <select name="condition_status">
+          <option value="sürücülü" {{ 'selected' if details and details['condition_status']=='sürücülü' }}>Sürücülü</option>
+          <option value="vurulmayıb" {{ 'selected' if details and details['condition_status']=='vurulmayıb' }}>Vurulmayıb, rənglənməyib</option>
+          <option value="qəzalı" {{ 'selected' if details and details['condition_status']=='qəzalı' }}>Qəzalı</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Əlavə seçimlər</label>
+        <div class="chip-list">
+          <label class="chip" style="cursor:pointer;"><input type="checkbox" name="has_credit" value="1" {{ 'checked' if details and details['has_credit'] }} style="width:auto;display:inline;margin-right:6px;">Kredit mümkündür</label>
+          <label class="chip" style="cursor:pointer;"><input type="checkbox" name="has_barter" value="1" {{ 'checked' if details and details['has_barter'] }} style="width:auto;display:inline;margin-right:6px;">Barter mümkündür</label>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if images %}
+    <div class="field">
+      <label>Mövcud şəkillər</label>
+      <div class="gallery-thumbs" style="margin-top:0;">
+        {% for img in images %}<img src="{{ img['image_path'] }}" alt="">{% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    <div class="field">
+      <label>Yeni şəkillər əlavə et (istəyə görə)</label>
+      <div class="upload-drop">
+        <input type="file" name="images" multiple accept=".png,.jpg,.jpeg,.webp" style="border:none;background:none;">
+        <div style="margin-top:6px;">Əlavə etdiyiniz şəkillər mövcud şəkillərin üzərinə əlavə olunacaq.</div>
+      </div>
+      <div class="image-preview" id="imagePreview"></div>
+    </div>
+
+    <div class="field">
+      <label>Yerləşmə (xəritədə seçin, istəyə görə)</label>
+      <div id="pickerMap" class="location-picker-map"></div>
+      <div class="location-hint">Xəritəyə klikləyərək yerləşməni yeniləyə bilərsiniz.</div>
+      <input type="hidden" name="latitude" id="latInput" value="{{ listing['latitude'] or '' }}">
+      <input type="hidden" name="longitude" id="lngInput" value="{{ listing['longitude'] or '' }}">
+    </div>
+
+    <button type="submit" class="btn btn-brass btn-block" style="margin-top:10px;">Dəyişiklikləri yadda saxla</button>
+  </form>
+</div>
+{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    wireLocationPicker(
+      'pickerMap', 'latInput', 'lngInput',
+      {{ listing['latitude'] or 'null' }}, {{ listing['longitude'] or 'null' }}
+    );
+    wireAbroadLocationPicker(
+      {{ countries|tojson }},
+      {{ listing['country']|tojson if listing['country'] else 'null' }},
+      {{ listing['city']|tojson if listing['country'] else 'null' }},
+      {{ listing['district']|tojson if listing['country'] else 'null' }}
+    );
+    wireImagePreview(document.querySelector('input[name="images"]'), document.getElementById('imagePreview'));
+  });
+</script>
+{% endblock %}

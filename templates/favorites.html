@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% block title %}Sevimlilər — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:40px 0 80px;">
+  <div class="section-head">
+    <h1 style="font-size:26px;margin:0;">Sevimlilər</h1>
+    <button type="button" class="btn btn-outline btn-sm" id="newCollectionBtn">+ Yeni kolleksiya</button>
+  </div>
+
+  <div class="collection-tabs">
+    <a href="{{ url_for('favorites_page') }}" class="collection-tab {{ 'active' if not selected_collection }}">Hamısı</a>
+    <a href="{{ url_for('favorites_page', collection='none') }}" class="collection-tab {{ 'active' if selected_collection=='none' }}">Kolleksiyasız</a>
+    {% for c in collections %}
+    <a href="{{ url_for('favorites_page', collection=c['id']) }}" class="collection-tab {{ 'active' if selected_collection==c['id']|string }}">{{ c['name'] }} <span>({{ c['item_count'] }})</span></a>
+    {% endfor %}
+  </div>
+
+  <div class="form-card" id="newCollectionForm" style="display:none;max-width:420px;margin-bottom:24px;">
+    <form method="post" action="{{ url_for('create_collection') }}">
+      <div class="field">
+        <label>Kolleksiya adı</label>
+        <input type="text" name="name" placeholder="məs. Yuxu evlərim" required>
+      </div>
+      <button type="submit" class="btn btn-brass btn-sm">Yarat</button>
+    </form>
+  </div>
+
+  {% if rows %}
+    <div class="grid-3" style="margin-top:20px;">
+      {% for l in rows %}
+      <div>
+        {% include "_card.html" %}
+        {% if collections %}
+        <select class="collection-assign" data-listing-id="{{ l['id'] }}" style="margin-top:8px;font-size:12.5px;padding:8px 10px;">
+          <option value="">Kolleksiya seçin...</option>
+          {% for c in collections %}<option value="{{ c['id'] }}">{{ c['name'] }}</option>{% endfor %}
+        </select>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>Bu kolleksiyada elan yoxdur.</p>
+      <a href="{{ url_for('listings') }}" class="btn btn-outline btn-sm" style="margin-top:10px;">Elanlara bax</a>
+    </div>
+  {% endif %}
+</div>
+
+<script>
+  document.getElementById('newCollectionBtn').addEventListener('click', function () {
+    var form = document.getElementById('newCollectionForm');
+    form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  });
+  document.querySelectorAll('.collection-assign').forEach(function (sel) {
+    sel.addEventListener('change', function () {
+      var id = sel.dataset.listingId;
+      var fd = new FormData();
+      fd.append('collection_id', sel.value);
+      fetch('/api/sevimli/' + id + '/kolleksiya', { method: 'POST', body: fd });
+    });
+  });
+</script>
+{% endblock %}

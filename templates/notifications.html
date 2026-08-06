@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Bildirişlər — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:640px;padding:36px 0 70px;">
+  <h1 style="font-size:24px;margin-bottom:20px;">Bildirişlər</h1>
+
+  {% if rows %}
+  <div class="inbox-list">
+    {% for n in rows %}
+    <a href="{{ url_for('listing_detail', listing_id=n['listing_id']) if n['listing_id'] else '#' }}" class="inbox-item {{ 'unread' if not n['is_read'] }}">
+      <div style="width:40px;height:40px;border-radius:10px;background:var(--gold-soft);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        🔔
+      </div>
+      <div class="info">
+        <div class="snippet" style="white-space:normal;">{{ n['message'] }}</div>
+        <div style="font-size:11.5px;color:var(--ink-soft);margin-top:3px;">{{ n['created_at']|timeago }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p>Hələ bildiriş yoxdur.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

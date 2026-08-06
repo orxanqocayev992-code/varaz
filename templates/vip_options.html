@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Elanı VIP et — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:820px;padding:40px 0 80px;">
+  <h1 style="font-size:28px;">Elanı VIP edin</h1>
+  <p style="color:var(--ink-soft);margin-bottom:6px;">
+    <strong>{{ listing['title'] }}</strong> elanını seçilmiş müddət ərzində axtarış nəticələrində ən üstdə göstərin.
+  </p>
+
+  {% if listing['is_vip_active'] %}
+  <div class="flash flash-success" style="position:static;margin:14px 0;width:auto;">
+    Bu elan hazırda VIP-dir, müddəti bitəndə: {{ listing['vip_expires_at'][:16] }}. Yeni paket alsanız müddətə əlavə olunur.
+  </div>
+  {% endif %}
+
+  <div class="vip-package-grid">
+    {% for key, pkg in packages.items() %}
+    <div class="vip-package-card {{ 'popular' if key == '7' }}">
+      {% if key == '7' %}<span class="popular-tag">Ən sərfəli</span>{% endif %}
+      <div class="days">{{ pkg.label }}</div>
+      <div class="price mono">{{ pkg.price }} AZN</div>
+      <form method="post" action="{{ url_for('vip_purchase', listing_id=listing['id'], package=key) }}">
+        <button type="submit" class="btn btn-brass btn-block">Ödənişi təsdiqlə</button>
+      </form>
+    </div>
+    {% endfor %}
+  </div>
+
+  <div style="margin-top:26px;padding:16px 18px;background:var(--surface);border:1px dashed var(--line);border-radius:var(--radius);font-size:13px;color:var(--ink-soft);">
+    <strong style="color:var(--ink);">Test rejimi:</strong> hazırda real ödəniş sistemi qoşulmayıb — "Ödənişi təsdiqlə" düyməsi simulyasiya rejimində işləyir və elanı dərhal VIP edir. Real ödəniş provayderi (Payriff, EPoint və s.) qoşulduqdan sonra bu addım real kart ödənişinə çevriləcək.
+  </div>
+
+  <a href="{{ url_for('listing_detail', listing_id=listing['id']) }}" class="btn btn-ghost" style="margin-top:16px;">← Elana qayıt</a>
+</div>
+{% endblock %}

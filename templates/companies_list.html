@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Tikinti şirkətləri — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:36px 0 70px;">
+  <div class="section-head">
+    <div>
+      <span class="eyebrow-sm">Developerlər</span>
+      <h1 style="font-size:27px;margin:0;">Tikinti şirkətləri</h1>
+    </div>
+    <span style="font-size:13.5px;color:var(--ink-soft);">{{ companies|length }} şirkət</span>
+  </div>
+
+  <div class="grid-3">
+    {% for c in companies %}
+    <a href="{{ url_for('company_detail', slug=c['slug']) }}" class="card" style="flex-direction:row;align-items:center;gap:16px;padding:18px;">
+      <img src="{{ c['logo_path'] }}" alt="{{ c['name'] }}" style="width:56px;height:56px;border-radius:12px;flex-shrink:0;">
+      <div style="min-width:0;">
+        <div class="title" style="margin:0 0 4px;font-size:15.5px;">{{ c['name'] }}</div>
+        <div class="meta" style="border:none;padding:0;text-transform:none;letter-spacing:0;">{{ c['project_count'] }} layihə · {{ c['city'] }}</div>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

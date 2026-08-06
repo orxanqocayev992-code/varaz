@@ -1,0 +1,164 @@
+{% extends "base.html" %}
+{% block title %}{{ t('nav.butun_elanlar') }} — VarAz{% endblock %}
+{% block content %}
+<div class="wrap listings-layout">
+
+  <aside class="filter-panel">
+    <form method="get" action="{{ url_for('listings') }}">
+      <h3>{{ t('filter.title') }}</h3>
+
+      <div class="field">
+        <label>{{ t('filter.type') }}</label>
+        <select name="type" onchange="this.form.submit()">
+          <option value="" {{ 'selected' if not args.get('type') }}>{{ t('hero.all_types') }}</option>
+          <option value="emlak" {{ 'selected' if args.get('type')=='emlak' }}>{{ t('hero.tab_emlak') }}</option>
+          <option value="neqliyyat" {{ 'selected' if args.get('type')=='neqliyyat' }}>{{ t('hero.tab_neqliyyat') }}</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label>{{ t('filter.category') }}</label>
+        <select name="category" onchange="this.form.submit()">
+          <option value="">{{ t('filter.all') }}</option>
+          {% for c in categories %}
+            <option value="{{ c }}" {{ 'selected' if args.get('category')==c }}>{{ c|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="field">
+        <label>{{ t('filter.city') }}</label>
+        <select name="city">
+          <option value="">{{ t('hero.all_cities') }}</option>
+          {% for c in cities %}
+            <option value="{{ c['name'] }}" {{ 'selected' if args.get('city')==c['name'] }}>{{ c['name'] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+
+      {% if args.get('category') == 'xaricdə evlər' %}
+      <div class="field">
+        <label>{{ t('filter.country') }}</label>
+        <select name="country">
+          <option value="">{{ t('filter.all_countries') }}</option>
+          {% for code, c in countries.items() %}
+            <option value="{{ code }}" {{ 'selected' if args.get('country')==code }}>{{ c.flag }} {{ c.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="field">
+        <label>{{ t('filter.price_range') }}</label>
+        <div class="field-row">
+          <input type="number" name="price_min" placeholder="{{ t('filter.min') }}" value="{{ args.get('price_min','') }}">
+          <input type="number" name="price_max" placeholder="{{ t('filter.max') }}" value="{{ args.get('price_max','') }}">
+        </div>
+      </div>
+
+      {% if args.get('type') == 'emlak' %}
+      <div class="field">
+        <label>{{ t('filter.building_type') }}</label>
+        <select name="building_type">
+          <option value="">{{ t('filter.all') }}</option>
+          {% for bt in building_types %}
+            <option value="{{ bt }}" {{ 'selected' if args.get('building_type')==bt }}>{{ bt|capitalize }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ t('filter.deal_type') }}</label>
+        <select name="deal_type">
+          <option value="">{{ t('filter.all') }}</option>
+          <option value="satılır" {{ 'selected' if args.get('deal_type')=='satılır' }}>{{ t('filter.sale') }}</option>
+          <option value="kirayə" {{ 'selected' if args.get('deal_type')=='kirayə' }}>{{ t('filter.rent_opt') }}</option>
+        </select>
+      </div>
+      {% endif %}
+
+      {% if args.get('type') == 'neqliyyat' %}
+      <div class="field">
+        <label>{{ t('filter.year_min') }}</label>
+        <input type="number" name="year_min" placeholder="məs. 2015" value="{{ args.get('year_min','') }}">
+      </div>
+      <div class="field">
+        <label>{{ t('filter.make') }}</label>
+        <select id="filterMakeSelect" name="make">
+          <option value="">{{ t('filter.all') }}</option>
+          {% for m in vehicle_makes %}
+            <option value="{{ m }}" {{ 'selected' if args.get('make')==m }}>{{ m }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="field">
+        <label>{{ t('filter.model') }}</label>
+        <input type="text" name="model" list="filterModelList" placeholder="məs. Camry" value="{{ args.get('model','') }}">
+        <datalist id="filterModelList"></datalist>
+      </div>
+      <div class="field">
+        <label>{{ t('filter.body_type') }}</label>
+        <select name="body_type">
+          <option value="">{{ t('filter.all') }}</option>
+          <option value="sedan" {{ 'selected' if args.get('body_type')=='sedan' }}>Sedan</option>
+          <option value="offroader" {{ 'selected' if args.get('body_type')=='offroader' }}>Offroader / SUV</option>
+          <option value="hetçbek" {{ 'selected' if args.get('body_type')=='hetçbek' }}>Hetçbek</option>
+          <option value="pikap" {{ 'selected' if args.get('body_type')=='pikap' }}>Pikap</option>
+          <option value="furqon" {{ 'selected' if args.get('body_type')=='furqon' }}>Furqon</option>
+          <option value="motosiklet" {{ 'selected' if args.get('body_type')=='motosiklet' }}>Motosiklet</option>
+        </select>
+      </div>
+      {% endif %}
+
+      <div class="field">
+        <label>{{ t('filter.keyword') }}</label>
+        <input type="text" name="q" placeholder="{{ t('filter.search_ph') }}" value="{{ args.get('q','') }}">
+      </div>
+
+      <button class="btn btn-brass btn-block" type="submit">{{ t('filter.apply') }}</button>
+      <a href="{{ url_for('listings') }}" class="btn btn-ghost btn-block" style="margin-top:8px;">{{ t('filter.reset') }}</a>
+    </form>
+  </aside>
+
+  <div>
+    <div class="results-head">
+      <div class="count">{{ result_count }} {{ t('filter.results') }}</div>
+      <form method="get" action="{{ url_for('listings') }}" id="sortForm">
+        {% for k,v in args.items() %}{% if k!='sort' %}<input type="hidden" name="{{k}}" value="{{v}}">{% endif %}{% endfor %}
+        <select name="sort" onchange="document.getElementById('sortForm').submit()" style="width:auto;">
+          <option value="new" {{ 'selected' if args.get('sort','new')=='new' }}>{{ t('filter.sort') }}</option>
+          <option value="price_asc" {{ 'selected' if args.get('sort')=='price_asc' }}>{{ t('sort.price_asc') }}</option>
+          <option value="price_desc" {{ 'selected' if args.get('sort')=='price_desc' }}>{{ t('sort.price_desc') }}</option>
+        </select>
+      </form>
+    </div>
+
+    {% if rows %}
+      <div class="grid-3">
+        {% for l in rows %}{% include "_card.html" %}{% endfor %}
+      </div>
+      {% if total_pages > 1 %}
+      <div class="pagination">
+        {% set base_args = dict(args) %}
+        {% if page > 1 %}
+          {% set _ = base_args.update({'page': page - 1}) %}
+          <a href="{{ url_for('listings', **base_args) }}" class="page-link">{{ t('filter.prev') }}</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+          {% set _ = base_args.update({'page': p}) %}
+          <a href="{{ url_for('listings', **base_args) }}" class="page-link {{ 'active' if p == page }}">{{ p }}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+          {% set _ = base_args.update({'page': page + 1}) %}
+          <a href="{{ url_for('listings', **base_args) }}" class="page-link">{{ t('filter.next') }}</a>
+        {% endif %}
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="empty-state">
+        <p>{{ t('filter.no_results') }}</p>
+        <a href="{{ url_for('listings') }}" class="btn btn-outline btn-sm" style="margin-top:10px;">{{ t('filter.reset_filters') }}</a>
+      </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

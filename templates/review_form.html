@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}Rəy yazın — VarAz{% endblock %}
+{% block content %}
+<div class="wrap narrow-form">
+  <div class="form-card">
+    <h1 class="form-page-title" style="font-size:24px;">Rəyinizi paylaşın</h1>
+    <p class="form-page-sub">Təcrübəniz digər istifadəçilərə kömək edir</p>
+    <form method="post">
+      <div class="field" style="text-align:center;">
+        <label style="text-align:left;">Reytinq</label>
+        <div class="star-picker" id="starPicker">
+          <span class="star" data-value="1">★</span>
+          <span class="star" data-value="2">★</span>
+          <span class="star" data-value="3">★</span>
+          <span class="star" data-value="4">★</span>
+          <span class="star" data-value="5">★</span>
+        </div>
+        <input type="hidden" name="rating" id="ratingInput" value="{{ form.rating if form else '' }}">
+      </div>
+      <div class="field">
+        <label>Rəyiniz</label>
+        <textarea name="body" rows="5" placeholder="VarAz-dan istifadə təcrübənizi yazın..." required>{{ form.body if form else '' }}</textarea>
+      </div>
+      <button type="submit" class="btn btn-brass btn-block">Rəyi dərc et</button>
+    </form>
+  </div>
+</div>
+
+<script>
+  (function () {
+    var stars = document.querySelectorAll('#starPicker .star');
+    var input = document.getElementById('ratingInput');
+    function paint(value) {
+      stars.forEach(function (s) {
+        s.classList.toggle('active', parseInt(s.dataset.value, 10) <= value);
+      });
+    }
+    stars.forEach(function (s) {
+      s.addEventListener('click', function () {
+        input.value = s.dataset.value;
+        paint(parseInt(s.dataset.value, 10));
+      });
+      s.addEventListener('mouseenter', function () { paint(parseInt(s.dataset.value, 10)); });
+    });
+    document.getElementById('starPicker').addEventListener('mouseleave', function () {
+      paint(parseInt(input.value, 10) || 0);
+    });
+    if (input.value) paint(parseInt(input.value, 10));
+  })();
+</script>
+{% endblock %}

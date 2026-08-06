@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Mesajlar — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="max-width:760px;padding:40px 0 80px;">
+  <h1 style="font-size:26px;">Mesajlar</h1>
+
+  {% if conversations %}
+    <div class="inbox-list" style="margin-top:20px;">
+      {% for c in conversations %}
+      <a href="{{ url_for('conversation', conversation_id=c['id']) }}" class="inbox-item {{ 'unread' if c['unread_count'] }}">
+        <div class="thumb">
+          {% if c['listing_thumb'] %}<img src="{{ c['listing_thumb'] }}" alt="">{% endif %}
+        </div>
+        <div class="info">
+          <div class="name">{{ c['other_name'] }}</div>
+          {% if c['listing_title'] %}<div class="listing-title">{{ c['listing_title'] }}</div>{% endif %}
+          <div class="snippet">{{ c['last_message'] or 'Mesaj yoxdur' }}</div>
+        </div>
+        {% if c['unread_count'] %}<span class="badge meta-badge">{{ c['unread_count'] }}</span>{% endif %}
+      </a>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state" style="margin-top:20px;">
+      <p>Hələ heç bir mesajınız yoxdur.</p>
+      <a href="{{ url_for('listings') }}" class="btn btn-outline btn-sm" style="margin-top:10px;">Elanlara bax</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

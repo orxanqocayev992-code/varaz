@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" width="1200" height="320">
+  <defs>
+    <radialGradient id="lens" cx="30%" cy="50%" r="60%">
+      <stop offset="0%" stop-color="#f3f3f3"/>
+      <stop offset="55%" stop-color="#e2e2e2"/>
+      <stop offset="100%" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="fade" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#E4483A" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#E4483A" stop-opacity="0"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="320" fill="#ffffff"/>
+  <ellipse cx="260" cy="160" rx="420" ry="260" fill="url(#lens)"/>
+  <g stroke="#d9d9d9" stroke-width="1.5" fill="none" opacity="0.8">
+    <ellipse cx="230" cy="160" rx="150" ry="150"/>
+    <ellipse cx="230" cy="160" rx="105" ry="105"/>
+    <ellipse cx="230" cy="160" rx="60" ry="60"/>
+  </g>
+  <g stroke="#E4483A" stroke-width="2.5" fill="none" stroke-linecap="round">
+    <path d="M120 250 L520 90" opacity="0.85"/>
+    <path d="M160 275 L640 95" opacity="0.55"/>
+    <path d="M90 210 L420 70" opacity="0.35"/>
+  </g>
+  <g stroke="#E4483A" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.4">
+    <path d="M700 40 L1150 40"/>
+    <path d="M750 60 L1150 60"/>
+  </g>
+  <rect x="0" y="0" width="1200" height="320" fill="url(#fade)" opacity="0.15"/>
+</svg>

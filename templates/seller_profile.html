@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}{{ seller['full_name'] }} — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:36px 0 70px;max-width:900px;">
+
+  <div style="display:flex;align-items:center;gap:18px;margin-bottom:26px;flex-wrap:wrap;">
+    <div class="owner-avatar" style="width:64px;height:64px;font-size:22px;">{{ seller['full_name'][0] }}</div>
+    <div style="flex:1;min-width:200px;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+        <h1 style="font-size:24px;margin:0;">{{ seller['full_name'] }}</h1>
+        {% if seller['is_verified'] %}
+        <span class="badge" style="background:var(--gold-soft);color:var(--gold-deep);display:inline-flex;align-items:center;gap:4px;">
+          <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg>
+          Doğrulanmış satıcı
+        </span>
+        {% endif %}
+      </div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-top:4px;">
+        Üzv olub: {{ seller['created_at'][:10] }}
+        {% if stats['review_count'] %} · {{ '%.1f'|format(stats['avg_rating']) }} ★ ({{ stats['review_count'] }} rəy){% endif %}
+        · {{ stats['listing_count'] }} aktiv elan
+      </div>
+    </div>
+    <a href="tel:{{ seller['phone'] }}" class="btn btn-teal">Zəng et</a>
+  </div>
+
+  {% if listings %}
+  <div class="section-head"><h2 style="font-size:19px;margin:0;">Elanları</h2></div>
+  <div class="grid-3" style="margin-bottom:40px;">
+    {% for l in listings %}{% include "_card.html" %}{% endfor %}
+  </div>
+  {% endif %}
+
+  <div class="section-head"><h2 style="font-size:19px;margin:0;">Rəylər ({{ stats['review_count'] or 0 }})</h2></div>
+
+  {% if current_user and current_user['id'] != seller['id'] and not already_reviewed %}
+  <div class="form-card" style="margin-bottom:24px;">
+    <form method="post" action="{{ url_for('rate_seller', seller_id=seller['id']) }}">
+      <div class="field">
+        <label>Reytinq</label>
+        <div class="star-picker" id="sellerStarPicker" style="justify-content:flex-start;">
+          <span class="star" data-value="1">★</span>
+          <span class="star" data-value="2">★</span>
+          <span class="star" data-value="3">★</span>
+          <span class="star" data-value="4">★</span>
+          <span class="star" data-value="5">★</span>
+        </div>
+        <input type="hidden" name="rating" id="sellerRatingInput" value="5">
+      </div>
+      <div class="field">
+        <label>Rəyiniz</label>
+        <textarea name="body" rows="3" placeholder="Bu satıcı ilə təcrübənizi yazın..." required></textarea>
+      </div>
+      <button type="submit" class="btn btn-brass">Rəyi göndər</button>
+    </form>
+  </div>
+  {% elif already_reviewed %}
+  <p style="color:var(--ink-soft);font-size:13.5px;margin-bottom:20px;">Bu satıcıya artıq rəy yazmısınız.</p>
+  {% endif %}
+
+  {% if reviews %}
+  <div class="testimonial-grid">
+    {% for r in reviews %}
+    <div class="testimonial-card">
+      <div class="testimonial-stars">{{ '★' * r['rating'] }}{{ '☆' * (5 - r['rating']) }}</div>
+      <p class="testimonial-quote">"{{ r['body'] }}"</p>
+      <div class="testimonial-person">
+        <div class="owner-avatar">{{ r['reviewer_name'][0] }}</div>
+        <div class="name">{{ r['reviewer_name'] }}</div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state"><p>Hələ rəy yoxdur.</p></div>
+  {% endif %}
+</div>
+
+<script>
+  (function () {
+    var stars = document.querySelectorAll('#sellerStarPicker .star');
+    var input = document.getElementById('sellerRatingInput');
+    if (!stars.length) return;
+    function paint(value) {
+      stars.forEach(function (s) { s.classList.toggle('active', parseInt(s.dataset.value, 10) <= value); });
+    }
+    stars.forEach(function (s) {
+      s.addEventListener('click', function () { input.value = s.dataset.value; paint(parseInt(s.dataset.value, 10)); });
+    });
+    paint(5);
+  })();
+</script>
+{% endblock %}

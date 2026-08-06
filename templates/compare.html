@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+{% block title %}Müqayisə — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:36px 0 70px;">
+  <h1 style="font-size:26px;margin-bottom:6px;">Elanların müqayisəsi</h1>
+  <p style="color:var(--ink-soft);margin-bottom:26px;">Ən çoxu 3 elanı yan-yana müqayisə edə bilərsiniz.</p>
+
+  {% if rows %}
+  <div class="compare-grid" style="grid-template-columns: 160px repeat({{ rows|length }}, 1fr);">
+    <div></div>
+    {% for l in rows %}
+    <div class="compare-col-head">
+      <a href="{{ url_for('listing_detail', listing_id=l['id']) }}">
+        {% set thumb = details_by_id[l['id']]['thumb'] %}
+        <img src="{{ thumb or '' }}" alt="{{ l['title'] }}">
+      </a>
+      <div class="compare-title"><a href="{{ url_for('listing_detail', listing_id=l['id']) }}">{{ l['title'] }}</a></div>
+      <div class="compare-price">{{ l['price']|money }} {{ l['currency'] }}</div>
+      <form method="post" action="{{ url_for('compare_remove', listing_id=l['id']) }}">
+        <button type="submit" class="btn btn-outline btn-sm btn-block">Çıxar</button>
+      </form>
+    </div>
+    {% endfor %}
+
+    <div class="compare-row-label">Şəhər</div>
+    {% for l in rows %}<div class="compare-cell">{{ l['city'] }}{% if l['district'] %}, {{ l['district'] }}{% endif %}</div>{% endfor %}
+
+    {% if rows[0]['type'] == 'emlak' %}
+      <div class="compare-row-label">Otaq sayı</div>
+      {% for l in rows %}<div class="compare-cell">{{ details_by_id[l['id']]['details']['rooms'] or '—' }}</div>{% endfor %}
+      <div class="compare-row-label">Sahə</div>
+      {% for l in rows %}<div class="compare-cell">{{ (details_by_id[l['id']]['details']['area_m2'] ~ ' m²') if details_by_id[l['id']]['details'] and details_by_id[l['id']]['details']['area_m2'] else '—' }}</div>{% endfor %}
+      <div class="compare-row-label">Mərtəbə</div>
+      {% for l in rows %}<div class="compare-cell">{{ details_by_id[l['id']]['details']['floor'] or '—' }}{% if details_by_id[l['id']]['details'] and details_by_id[l['id']]['details']['floors_total'] %} / {{ details_by_id[l['id']]['details']['floors_total'] }}{% endif %}</div>{% endfor %}
+      <div class="compare-row-label">Bina tipi</div>
+      {% for l in rows %}<div class="compare-cell">{{ details_by_id[l['id']]['details']['building_type'] or '—' }}</div>{% endfor %}
+    {% else %}
+      <div class="compare-row-label">Marka / Model</div>
+      {% for l in rows %}<div class="compare-cell">{{ details_by_id[l['id']]['details']['make'] or '' }} {{ details_by_id[l['id']]['details']['model'] or '' }}</div>{% endfor %}
+      <div class="compare-row-label">İl</div>
+      {% for l in rows %}<div class="compare-cell">{{ details_by_id[l['id']]['details']['year'] or '—' }}</div>{% endfor %}
+      <div class="compare-row-label">Yürüş</div>
+      {% for l in rows %}<div class="compare-cell">{{ (details_by_id[l['id']]['details']['mileage_km']|money ~ ' km') if details_by_id[l['id']]['details'] and details_by_id[l['id']]['details']['mileage_km'] else '—' }}</div>{% endfor %}
+      <div class="compare-row-label">Yanacaq</div>
+      {% for l in rows %}<div class="compare-cell">{{ details_by_id[l['id']]['details']['fuel_type'] or '—' }}</div>{% endfor %}
+      <div class="compare-row-label">Sürətlər qutusu</div>
+      {% for l in rows %}<div class="compare-cell">{{ details_by_id[l['id']]['details']['transmission'] or '—' }}</div>{% endfor %}
+    {% endif %}
+
+    <div class="compare-row-label">Baxış sayı</div>
+    {% for l in rows %}<div class="compare-cell">{{ l['views'] }}</div>{% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <p>Müqayisə üçün heç bir elan seçilməyib.</p>
+    <a href="{{ url_for('listings') }}" class="btn btn-outline btn-sm" style="margin-top:10px;">Elanlara bax</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

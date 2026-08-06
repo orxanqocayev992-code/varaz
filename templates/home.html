@@ -1,0 +1,341 @@
+{% extends "base.html" %}
+{% block content %}
+
+<section class="hero">
+  <svg class="ghost-key" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="140" cy="140" r="80"/>
+    <path d="M196 196 L340 340 M340 340 L340 280 M340 340 L280 340"/>
+  </svg>
+  <div class="wrap">
+    <span class="eyebrow">{{ t('hero.eyebrow') }}</span>
+    <h1>{{ t('hero.heading') }}</h1>
+    <p class="lead">{{ t('hero.lead') }}</p>
+
+    <div class="hero-stats">
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><path d="M3 9.5 12 3l9 6.5V20a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></svg>
+        <div><div class="num mono stat-counter" data-target="{{ stats['emlak_count'] }}">0</div><div class="label">{{ t('hero.stat_property') }}</div></div>
+      </div>
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><rect x="3" y="10" width="14" height="7" rx="2"/><path d="M17 13h2.5a1.5 1.5 0 0 1 1.5 1.5V17M6 10V8a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><circle cx="7" cy="17" r="1.5"/><circle cx="16" cy="17" r="1.5"/></svg>
+        <div><div class="num mono stat-counter" data-target="{{ stats['neqliyyat_count'] }}">0</div><div class="label">{{ t('hero.stat_vehicle') }}</div></div>
+      </div>
+      <div>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M15.5 14.2c2.5.3 4.5 2.5 4.5 5.8"/></svg>
+        <div><div class="num mono stat-counter" data-target="{{ stats['user_count'] }}">0</div><div class="label">{{ t('hero.stat_users') }}</div></div>
+      </div>
+    </div>
+
+    <form class="search-panel" action="{{ url_for('listings') }}" method="get">
+      <div class="search-tabs">
+        <a href="{{ url_for('listings', type='emlak') }}" class="active">{{ t('hero.tab_emlak') }}</a>
+        <a href="{{ url_for('listings', type='neqliyyat') }}">{{ t('hero.tab_neqliyyat') }}</a>
+        <a href="{{ url_for('listings', type='emlak', category='xaricdə evlər') }}">{{ t('hero.tab_xaricde') }}</a>
+      </div>
+      <div class="search-row">
+        <select name="type">
+          <option value="">{{ t('hero.all_types') }}</option>
+          <option value="emlak">{{ t('hero.tab_emlak') }}</option>
+          <option value="neqliyyat">{{ t('hero.tab_neqliyyat') }}</option>
+        </select>
+        <select name="city">
+          <option value="">{{ t('hero.all_cities') }}</option>
+          {% for c in cities %}<option value="{{ c['name'] }}">{{ c['name'] }}</option>{% endfor %}
+        </select>
+        <input type="text" name="q" placeholder="{{ t('hero.search_placeholder') }}">
+        <button class="btn btn-brass" type="submit">{{ t('hero.search_btn') }}</button>
+      </div>
+    </form>
+  </div>
+</section>
+
+<section class="trust-bar">
+  <div class="wrap trust-grid">
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/></svg>
+      {{ t('trust.verified') }}
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+      {{ t('trust.cities') }}
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-7.5-4.6-10-9.1C.4 8.6 2 5 5.6 5 8 5 10 6.4 12 9c2-2.6 4-4 6.4-4C22 5 23.6 8.6 22 11.9 19.5 16.4 12 21 12 21z"/></svg>
+      {{ t('trust.favorites') }}
+    </div>
+    <div class="trust-item">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>
+      {{ t('trust.fast') }}
+    </div>
+  </div>
+</section>
+
+<section class="block category-strip">
+  <div class="wrap">
+    <div class="category-icons">
+      <a class="category-icon-card" href="{{ url_for('listings', type='emlak', deal_type='satılır') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 4l9 6.5V20a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/><path d="M9 21v-6h6v6"/></svg>
+        <span>{{ t('cat.sale') }}</span>
+      </a>
+      <a class="category-icon-card" href="{{ url_for('listings', type='emlak', deal_type='kirayə') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="15.5" r="4.5"/><path d="M11.3 12.2 19 4.5M19 4.5h-4M19 4.5v4"/></svg>
+        <span>{{ t('cat.rent') }}</span>
+      </a>
+      <a class="category-icon-card" href="{{ url_for('listings', type='neqliyyat') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="7" rx="2"/><path d="M19 13h2.5M6 8V6a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2"/><circle cx="7.5" cy="18" r="1.6"/><circle cx="16.5" cy="18" r="1.6"/></svg>
+        <span>{{ t('cat.cars') }}</span>
+      </a>
+      <a class="category-icon-card" href="{{ url_for('listings', type='emlak', building_type='yeni tikili') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 7h1M14 7h1M9 11h1M14 11h1M9 15h1M14 15h1M10 21v-4h4v4"/></svg>
+        <span>{{ t('cat.new_building') }}</span>
+      </a>
+      <a class="category-icon-card" href="{{ url_for('listings', type='emlak', category='xaricdə evlər') }}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.7 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.7-3.8-9S9.5 5.5 12 3z"/></svg>
+        <span>{{ t('cat.abroad') }}</span>
+      </a>
+      <a class="category-icon-card" href="{{ url_for('home') }}#layihe">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v4M8 5.5 10 8M16 5.5 14 8"/><rect x="4" y="9" width="16" height="12" rx="1"/><path d="M9 21v-5h6v5"/></svg>
+        <span>{{ t('cat.new_projects') }}</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+{% if top_cities %}
+<section class="block" style="padding-bottom:8px;">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">{{ t('regions.eyebrow') }}</span>
+        <h2>{{ t('regions.heading') }}</h2>
+      </div>
+    </div>
+    <div class="city-grid">
+      {% for c in top_cities %}
+      <a href="{{ url_for('listings', city=c['city']) }}" class="city-card">
+        <div>
+          <div class="name">{{ c['city'] }}</div>
+          <div class="count">{{ c['cnt'] }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if trending_searches %}
+<section class="block" style="padding-top:8px;padding-bottom:8px;">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">Trend</span>
+        <h2 style="font-size:19px;">Populyar axtarışlar</h2>
+      </div>
+    </div>
+    <div class="trending-tags">
+      {% for s in trending_searches %}
+      <a href="{{ url_for('listings', q=s['query']) }}" class="trending-tag">🔍 {{ s['query'] }}</a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if recently_viewed %}
+<section class="block" style="padding-top:8px;">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2 style="font-size:19px;">Son baxdıqlarınız</h2></div>
+    </div>
+    <div class="grid-4">
+      {% for l in recently_viewed %}{% include "_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="block how-it-works">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">{{ t('how.eyebrow') }}</span>
+        <h2>{{ t('how.heading') }}</h2>
+      </div>
+    </div>
+    <div class="how-grid">
+      <div class="how-step">
+        <div class="how-num">1</div>
+        <h3>{{ t('how.step1_title') }}</h3>
+        <p>{{ t('how.step1_text') }}</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">2</div>
+        <h3>{{ t('how.step2_title') }}</h3>
+        <p>{{ t('how.step2_text') }}</p>
+      </div>
+      <div class="how-step">
+        <div class="how-num">3</div>
+        <h3>{{ t('how.step3_title') }}</h3>
+        <p>{{ t('how.step3_text') }}</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% if vip_listings %}
+<section class="block vip-strip">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">★ VIP</span>
+        <h2>VIP</h2>
+      </div>
+    </div>
+    <div class="grid-4">
+      {% for l in vip_listings %}{% include "_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if popular_projects %}
+<section class="block" style="padding-bottom:8px;">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">🔥 Trend</span>
+        <h2 style="font-size:20px;">Populyar layihələr</h2>
+      </div>
+    </div>
+    <div class="projects-slider">
+      {% for r in popular_projects %}
+      <a href="{{ url_for('residence_detail', slug=r['slug']) }}" class="project-slide">
+        <div class="thumb">
+          <img src="{{ r['image_path'] }}" alt="{{ r['name'] }}" loading="lazy">
+          {% if r['logo_path'] %}<img src="{{ r['logo_path'] }}" alt="" class="logo-badge">{% endif %}
+        </div>
+        <div class="body">
+          <div class="price-from mono">{{ r['price_from']|money }} AZN-dən</div>
+          <div class="name">{{ r['name'] }}</div>
+          <div class="rating-row"><span class="stars">★</span> {{ '%.1f'|format(r['rating']) }} · {{ r['district'] }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if residences %}
+<section class="residence-section" id="layihe">
+  <svg class="ghost-key" style="top:auto;bottom:-120px;right:-120px;width:420px;height:420px;opacity:0.35;" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="140" cy="140" r="80"/>
+    <path d="M196 196 L340 340 M340 340 L340 280 M340 340 L280 340"/>
+  </svg>
+  <div class="wrap">
+    <div class="section-head-dark">
+      <div>
+        <span class="eyebrow-sm" style="color:var(--gold);">{{ t('projects.eyebrow') }}</span>
+        <h2 style="color:#fff;">{{ t('projects.heading') }}</h2>
+      </div>
+      <a href="{{ url_for('projects_list') }}" class="see-all" style="color:var(--gold);">{{ t('projects.see_all') }}</a>
+    </div>
+    <div class="residence-grid">
+      {% for r in residences %}
+      <a href="{{ url_for('residence_detail', slug=r['slug']) }}" class="residence-card">
+        <div class="thumb">
+          <img src="{{ r['image_path'] }}" alt="{{ r['name'] }}" loading="lazy">
+          {% if r['logo_path'] %}<img src="{{ r['logo_path'] }}" alt="" class="logo-badge">{% endif %}
+        </div>
+        <div class="body">
+          <div class="price-from mono">{{ r['price_from']|money }} {{ t('projects.from') }}</div>
+          <div class="name">{{ r['name'] }}</div>
+          <div class="rating-row"><span class="stars">★</span> {{ '%.1f'|format(r['rating']) }} · {{ r['company_name'] or r['developer'] }}</div>
+          <div class="meta">{{ r['district'] }}</div>
+          <span class="deadline-badge">{{ t('projects.delivery') }} {{ r['deadline'] }}</span>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+    <div style="text-align:center;margin-top:22px;">
+      <a href="{{ url_for('companies_list') }}" style="font-size:13px;color:rgba(255,255,255,0.55);">{{ t('projects.see_companies') }}</a>
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<section class="block tint-teal">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">{{ t('featured.property_eyebrow') }}</span>
+        <h2>{{ t('featured.property_heading') }}</h2>
+      </div>
+      <a class="see-all" href="{{ url_for('listings', type='emlak') }}">{{ t('featured.see_all') }}</a>
+    </div>
+    <div class="grid-4">
+      {% for l in featured_property %}{% include "_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding:36px 0;">
+  <div class="wrap">
+    <div class="cta-banner">
+      <div class="cta-banner-inner">
+        <h2>{{ t('cta.heading') }}</h2>
+        <p>{{ t('cta.text') }}</p>
+        <div class="btn-group">
+          <a href="{{ url_for('new_listing') }}" class="btn btn-brass">{{ t('cta.btn_free') }}</a>
+          <a href="{{ url_for('about') }}" class="btn btn-on-dark">{{ t('cta.btn_more') }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block tint-brass" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm" style="color:var(--brass-deep);">{{ t('featured.vehicle_eyebrow') }}</span>
+        <h2>{{ t('featured.vehicle_heading') }}</h2>
+      </div>
+      <a class="see-all" href="{{ url_for('listings', type='neqliyyat') }}">{{ t('featured.see_all') }}</a>
+    </div>
+    <div class="grid-4">
+      {% for l in featured_vehicle %}{% include "_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="block" style="padding-top:8px;">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">{{ t('reviews.eyebrow') }}</span>
+        <h2>{{ t('reviews.heading') }}</h2>
+      </div>
+      <a class="see-all" href="{{ url_for('write_review') if current_user else url_for('login', next=url_for('write_review')) }}">{{ t('reviews.write') }}</a>
+    </div>
+    {% if reviews %}
+    <div class="testimonial-grid">
+      {% for r in reviews %}
+      <div class="testimonial-card">
+        <div class="testimonial-stars">{{ '★' * r['rating'] }}{{ '☆' * (5 - r['rating']) }}</div>
+        <p class="testimonial-quote">"{{ r['body'] }}"</p>
+        <div class="testimonial-person">
+          <div class="owner-avatar">{{ r['full_name'][0] }}</div>
+          <div>
+            <div class="name">{{ r['full_name'] }}</div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+
+{% endblock %}

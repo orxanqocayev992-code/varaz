@@ -1,0 +1,287 @@
+{% extends "base.html" %}
+{% block title %}{{ listing['title'] }} — VarAz{% endblock %}
+{% block content %}
+<div class="wrap detail-layout">
+
+  <div>
+    <div class="gallery-main">
+      <img src="{{ images[0]['image_path'] if images else '' }}" alt="{{ listing['title'] }}">
+    </div>
+    {% if images|length > 1 %}
+    <div class="gallery-thumbs">
+      {% for img in images %}<img src="{{ img['image_path'] }}" alt="">{% endfor %}
+    </div>
+    {% endif %}
+
+    <h1 style="margin-top:28px;font-size:28px;">{{ listing['title'] }}</h1>
+    <div style="color:var(--ink-soft);font-size:14px;">
+      {% if listing['country'] and countries.get(listing['country']) %}{{ countries[listing['country']].flag }} {% endif %}{{ listing['city'] }}{% if listing['district'] %}, {{ listing['district'] }}{% endif %}
+      · <span class="mono">{{ listing['views'] }} baxış</span>
+      · {{ listing['created_at'][:10] }}
+    </div>
+
+    <div class="share-row" id="shareRow" data-url="{{ request.url }}" data-title="{{ listing['title'] }}">
+      <span class="share-label">Paylaş:</span>
+      <a class="share-btn share-fb" target="_blank" rel="noopener" aria-label="Facebook-da paylaş">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 12a10 10 0 1 0-11.6 9.9v-7H7.9V12h2.5V9.8c0-2.5 1.5-3.9 3.8-3.9 1.1 0 2.2.2 2.2.2v2.5h-1.3c-1.2 0-1.6.8-1.6 1.6V12h2.8l-.4 2.9h-2.4v7A10 10 0 0 0 22 12z"/></svg>
+      </a>
+      <a class="share-btn share-wa" target="_blank" rel="noopener" aria-label="WhatsApp-da paylaş">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 0 0-8.6 15L2 22l5.2-1.4A10 10 0 1 0 12 2zm5.7 14.2c-.2.7-1.4 1.3-2 1.4-.5.1-1.1.1-1.8-.1-.4-.1-1-.3-1.7-.6-3-1.3-5-4.3-5.1-4.5-.1-.2-1.2-1.6-1.2-3.1s.8-2.2 1-2.5c.3-.3.6-.4.8-.4h.6c.2 0 .4 0 .6.5l.9 2.1c.1.2.1.4 0 .6l-.5.7c-.1.2-.2.3-.1.6.2.3.9 1.5 2 2.4 1.3 1.2 2.4 1.5 2.7 1.7.3.1.5.1.6-.1l.8-1c.2-.3.4-.2.6-.1l1.9.9c.2.1.4.2.4.4.1.2.1.9-.2 1.6z"/></svg>
+      </a>
+      <a class="share-btn share-tg" target="_blank" rel="noopener" aria-label="Telegram-da paylaş">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22 4.5 2.9 12c-.8.3-.8 1.4.1 1.6l4.8 1.5 1.9 5.8c.2.6 1 .7 1.4.2l2.6-2.9 4.9 3.6c.6.4 1.4.1 1.6-.6l3-15.1c.2-.9-.7-1.6-1.5-1.2zM8.6 14.5l9-6.7c.3-.2.6.1.3.4l-7.4 7.1-.3 3-1.3-3.8z"/></svg>
+      </a>
+      <button type="button" class="share-btn share-copy" aria-label="Linki kopyala">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <span class="share-copied" id="shareCopiedMsg">Link kopyalandı!</span>
+    </div>
+
+    <p style="margin-top:22px;line-height:1.7;">{{ listing['description'] or 'Təsvir əlavə edilməyib.' }}</p>
+
+    <table class="spec-table">
+      {% if listing['type'] == 'emlak' and details %}
+        {% if details['rooms'] %}<tr><td>Otaq sayı</td><td>{{ details['rooms'] }}</td></tr>{% endif %}
+        {% if details['area_m2'] %}<tr><td>Sahə</td><td>{{ details['area_m2'] }} m²</td></tr>{% endif %}
+        {% if details['floor'] %}<tr><td>Mərtəbə</td><td>{{ details['floor'] }} / {{ details['floors_total'] }}</td></tr>{% endif %}
+        {% if details['building_type'] %}<tr><td>Bina tipi</td><td>{{ details['building_type'] }}</td></tr>{% endif %}
+        {% if details['repair_status'] %}<tr><td>Təmir</td><td>{{ details['repair_status'] }}</td></tr>{% endif %}
+        <tr><td>Əməliyyat</td><td>{{ details['deal_type'] }}</td></tr>
+      {% elif details %}
+        {% if details['make'] %}<tr><td>Marka</td><td>{{ details['make'] }}</td></tr>{% endif %}
+        {% if details['model'] %}<tr><td>Model</td><td>{{ details['model'] }}</td></tr>{% endif %}
+        {% if details['year'] %}<tr><td>Buraxılış ili</td><td>{{ details['year'] }}</td></tr>{% endif %}
+        {% if details['mileage_km'] %}<tr><td>Yürüş</td><td>{{ details['mileage_km']|money }} km</td></tr>{% endif %}
+        {% if details['engine_volume'] %}<tr><td>Mühərrik həcmi</td><td>{{ details['engine_volume'] }} L</td></tr>{% endif %}
+        {% if details['fuel_type'] %}<tr><td>Yanacaq növü</td><td>{{ details['fuel_type'] }}</td></tr>{% endif %}
+        {% if details['transmission'] %}<tr><td>Sürətlər qutusu</td><td>{{ details['transmission'] }}</td></tr>{% endif %}
+        {% if details['color'] %}<tr><td>Rəng</td><td>{{ details['color'] }}</td></tr>{% endif %}
+        {% if details['condition_status'] %}<tr><td>Vəziyyət</td><td>{{ details['condition_status'] }}</td></tr>{% endif %}
+        {% if details['deal_type'] %}<tr><td>Əməliyyat</td><td>{{ 'İcarəyə verilir' if details['deal_type']=='kirayə' else 'Satılır' }}</td></tr>{% endif %}
+      {% endif %}
+    </table>
+
+    {% if listing['latitude'] and listing['longitude'] %}
+    <h3 style="font-size:16px;margin-top:30px;">{{ t('detail.location') }}</h3>
+    <div id="listingMap" style="height:280px;border-radius:var(--radius);overflow:hidden;border:1px solid var(--line);margin-top:12px;box-shadow:var(--shadow);"></div>
+    {% endif %}
+
+    <div class="calc-card">
+      <h3 style="font-size:16px;margin-bottom:4px;">{{ 'İpoteka kalkulyatoru' if listing['type']=='emlak' else 'Kredit kalkulyatoru' }}</h3>
+      <p style="font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;">Təxmini aylıq ödənişi hesablayın (məlumat xarakterlidir).</p>
+      <div class="field-row">
+        <div class="field">
+          <label>{{ 'Əmlakın qiyməti' if listing['type']=='emlak' else 'Avtomobilin qiyməti' }} (AZN)</label>
+          <input type="number" id="calcPrice" value="{{ listing['price']|int }}">
+        </div>
+        <div class="field">
+          <label>İlkin ödəniş (AZN)</label>
+          <input type="number" id="calcDown" value="{{ (listing['price']*0.2)|int }}">
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label>Müddət (il)</label>
+          <input type="number" id="calcTerm" value="{{ 20 if listing['type']=='emlak' else 5 }}" min="1" max="30">
+        </div>
+        <div class="field">
+          <label>Faiz dərəcəsi (illik, %)</label>
+          <input type="number" id="calcRate" step="0.1" value="{{ 12 if listing['type']=='emlak' else 16 }}">
+        </div>
+      </div>
+      <div class="calc-result">
+        <div class="calc-result-label">Təxmini aylıq ödəniş</div>
+        <div class="calc-result-value" id="calcMonthly">—</div>
+      </div>
+    </div>
+  </div>
+
+  <aside>
+    <div class="side-card">
+      <span class="badge">{{ listing['category']|capitalize }}</span>
+      {% if listing['is_vip_active'] %}<span class="vip-badge-lg" style="margin-left:6px;">★ VIP</span>{% endif %}
+      <div class="price mono" style="margin-top:10px;">{{ listing['price']|money }} {{ listing['currency'] }}</div>
+      {% if listing['is_negotiable'] %}<div style="font-size:13px;color:var(--ink-soft);">Razılaşma mümkündür</div>{% endif %}
+
+      {% if current_user %}
+      <button type="button" class="btn btn-outline btn-block fav-btn {{ 'active' if is_favorite }}" data-id="{{ listing['id'] }}" style="margin-top:18px;position:static;width:100%;">
+        <svg viewBox="0 0 24 24" style="width:16px;height:16px;stroke:currentColor;fill:{{ 'var(--brass)' if is_favorite else 'none' }};stroke-width:2;"><path d="M12 21s-7.5-4.6-10-9.1C.4 8.6 2 5 5.6 5 8 5 10 6.4 12 9c2-2.6 4-4 6.4-4C22 5 23.6 8.6 22 11.9 19.5 16.4 12 21 12 21z"/></svg>
+        {{ 'Sevimlilərdə' if is_favorite else 'Sevimlilərə əlavə et' }}
+      </button>
+      {% endif %}
+
+      <a href="{{ url_for('seller_profile', seller_id=owner['id']) }}" class="owner-row" style="text-decoration:none;">
+        <div class="owner-avatar">{{ owner['full_name'][0] }}</div>
+        <div>
+          <div style="font-weight:600;font-size:14.5px;color:var(--ink);display:flex;align-items:center;gap:5px;">
+            {{ owner['full_name'] }}
+            {% if owner['is_verified'] %}
+            <svg viewBox="0 0 24 24" width="14" height="14" fill="var(--gold-deep)" title="Doğrulanmış satıcı"><path d="M12 2 4 6v6c0 5 3.5 9 8 10 4.5-1 8-5 8-10V6z"/></svg>
+            {% endif %}
+          </div>
+          <div class="mono" style="font-size:13px;color:var(--ink-soft);">
+            {{ owner['phone'] }}{% if seller_stats['review_count'] %} · {{ '%.1f'|format(seller_stats['avg_rating']) }} ★ ({{ seller_stats['review_count'] }}){% endif %}
+          </div>
+        </div>
+      </a>
+      <a href="tel:{{ owner['phone'] }}" class="btn btn-teal btn-block" style="margin-top:16px;">{{ t('detail.call') }}</a>
+
+      {% if current_user and current_user['id'] != listing['user_id'] %}
+      <form method="post" action="{{ url_for('toggle_price_watch', listing_id=listing['id']) }}" style="margin-top:8px;">
+        <button type="submit" class="btn btn-outline btn-block">{{ '🔔 Qiymət bildirişini ləğv et' if is_watching else '🔔 Qiymət düşəndə bildir' }}</button>
+      </form>
+      {% endif %}
+
+      <form method="post" action="{{ url_for('compare_add', listing_id=listing['id']) }}" style="margin-top:8px;">
+        <button type="submit" class="btn btn-outline btn-block" {{ 'disabled' if listing['id'] in compare_ids }}>
+          {{ '✓ Müqayisədə' if listing['id'] in compare_ids else '⇄ Müqayisəyə əlavə et' }}
+        </button>
+      </form>
+
+      {% if current_user %}
+      <button type="button" class="btn btn-ghost btn-block btn-sm" id="reportToggleBtn" style="margin-top:6px;color:var(--ink-soft);">⚑ Bu elandan şikayət et</button>
+      <form method="post" action="{{ url_for('report_listing', listing_id=listing['id']) }}" id="reportForm" style="display:none;margin-top:8px;background:var(--surface-alt);padding:12px;border-radius:var(--radius-sm);">
+        <div class="field" style="margin-bottom:8px;">
+          <select name="reason" required style="font-size:13px;">
+            <option value="">Səbəb seçin</option>
+            <option value="Aldadıcı elan">Aldadıcı elan</option>
+            <option value="Artıq satılıb">Artıq satılıb</option>
+            <option value="Yanlış qiymət">Yanlış qiymət</option>
+            <option value="Spam / təkrar elan">Spam / təkrar elan</option>
+            <option value="Digər">Digər</option>
+          </select>
+        </div>
+        <textarea name="body" rows="2" placeholder="Ətraflı (istəyə görə)" style="font-size:12.5px;margin-bottom:8px;"></textarea>
+        <button type="submit" class="btn btn-danger btn-sm btn-block">Şikayəti göndər</button>
+      </form>
+      {% endif %}
+
+      {% if current_user and current_user['id'] != listing['user_id'] %}
+      <form method="post" action="{{ url_for('send_listing_message', listing_id=listing['id']) }}" style="margin-top:10px;">
+        <textarea name="body" rows="3" placeholder="Satıcıya mesaj yazın..." required style="margin-bottom:8px;"></textarea>
+        <button type="submit" class="btn btn-outline btn-block">{{ t('detail.message') }}</button>
+      </form>
+      {% elif not current_user %}
+      <a href="{{ url_for('login', next=request.path) }}" class="btn btn-outline btn-block" style="margin-top:10px;">Mesaj göndərmək üçün daxil olun</a>
+      {% endif %}
+
+      {% if current_user and current_user['id'] == listing['user_id'] %}
+      <a href="{{ url_for('vip_options', listing_id=listing['id']) }}" class="btn btn-block" style="margin-top:10px;background:linear-gradient(135deg,#FFD84D,#F0B90B);color:#3A2A00;">
+        {{ '★ VIP müddətini artır' if listing['is_vip_active'] else '★ Elanı VIP et' }}
+      </a>
+      <a href="{{ url_for('edit_listing', listing_id=listing['id']) }}" class="btn btn-outline btn-block" style="margin-top:10px;">{{ t('detail.edit') }}</a>
+      <form method="post" action="{{ url_for('delete_listing', listing_id=listing['id']) }}" style="margin-top:10px;" onsubmit="return confirm('Elanı silmək istədiyinizə əminsiniz?');">
+        <button class="btn btn-danger btn-block" type="submit">{{ t('detail.delete') }}</button>
+      </form>
+      {% endif %}
+    </div>
+  </aside>
+</div>
+
+{% if similar %}
+<section class="block" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head"><h2>{{ t('detail.similar') }}</h2></div>
+    <div class="grid-4">
+      {% for l in similar %}{% include "_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if recently_viewed %}
+<section class="block tint-teal" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head"><h2>Son baxdıqlarınız</h2></div>
+    <div class="grid-4">
+      {% for l in recently_viewed %}{% include "_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
+
+{% block extra_head %}
+{% if listing['latitude'] and listing['longitude'] %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+{% endif %}
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+  (function () {
+    var row = document.getElementById('shareRow');
+    if (!row) return;
+    var url = row.dataset.url;
+    var title = row.dataset.title;
+    var encUrl = encodeURIComponent(url);
+    var encTitle = encodeURIComponent(title);
+    var fb = row.querySelector('.share-fb');
+    var wa = row.querySelector('.share-wa');
+    var tg = row.querySelector('.share-tg');
+    var copyBtn = row.querySelector('.share-copy');
+    var copiedMsg = document.getElementById('shareCopiedMsg');
+    if (fb) fb.href = 'https://www.facebook.com/sharer/sharer.php?u=' + encUrl;
+    if (wa) wa.href = 'https://wa.me/?text=' + encTitle + '%20' + encUrl;
+    if (tg) tg.href = 'https://t.me/share/url?url=' + encUrl + '&text=' + encTitle;
+    if (copyBtn) {
+      copyBtn.addEventListener('click', function () {
+        navigator.clipboard.writeText(url).then(function () {
+          copiedMsg.classList.add('visible');
+          setTimeout(function () { copiedMsg.classList.remove('visible'); }, 1800);
+        });
+      });
+    }
+  })();
+</script>
+{% if listing['latitude'] and listing['longitude'] %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+  (function () {
+    var map = L.map('listingMap', { scrollWheelZoom: false }).setView([{{ listing['latitude'] }}, {{ listing['longitude'] }}], 14);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap',
+      maxZoom: 19
+    }).addTo(map);
+    L.marker([{{ listing['latitude'] }}, {{ listing['longitude'] }}]).addTo(map)
+      .bindPopup({{ listing['title']|tojson }});
+  })();
+</script>
+{% endif %}
+<script>
+  (function () {
+    var priceEl = document.getElementById('calcPrice');
+    var downEl = document.getElementById('calcDown');
+    var termEl = document.getElementById('calcTerm');
+    var rateEl = document.getElementById('calcRate');
+    var resultEl = document.getElementById('calcMonthly');
+    if (!priceEl || !resultEl) return;
+    function calc() {
+      var price = parseFloat(priceEl.value) || 0;
+      var down = parseFloat(downEl.value) || 0;
+      var years = parseFloat(termEl.value) || 1;
+      var annualRate = parseFloat(rateEl.value) || 0;
+      var principal = Math.max(price - down, 0);
+      var months = years * 12;
+      var monthlyRate = annualRate / 100 / 12;
+      var payment;
+      if (monthlyRate > 0) {
+        payment = principal * (monthlyRate * Math.pow(1 + monthlyRate, months)) / (Math.pow(1 + monthlyRate, months) - 1);
+      } else {
+        payment = principal / months;
+      }
+      if (!isFinite(payment) || payment < 0) payment = 0;
+      resultEl.textContent = payment.toLocaleString('az-AZ', { maximumFractionDigits: 0 }) + ' AZN / ay';
+    }
+    [priceEl, downEl, termEl, rateEl].forEach(function (el) { el.addEventListener('input', calc); });
+    calc();
+  })();
+  var reportBtn = document.getElementById('reportToggleBtn');
+  var reportForm = document.getElementById('reportForm');
+  if (reportBtn && reportForm) {
+    reportBtn.addEventListener('click', function () {
+      reportForm.style.display = reportForm.style.display === 'none' ? 'block' : 'none';
+    });
+  }
+</script>
+{% endblock %}

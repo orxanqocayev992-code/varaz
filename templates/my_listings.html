@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Elanlarım — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:40px 0 80px;">
+  <div class="section-head">
+    <h1 style="font-size:26px;margin:0;">Elanlarım</h1>
+    <a href="{{ url_for('new_listing') }}" class="btn btn-brass btn-sm">+ Yeni elan</a>
+  </div>
+  {% if rows %}
+    <div class="grid-3">
+      {% for l in rows %}
+      <div>
+        {% include "_card.html" %}
+        <a href="{{ url_for('edit_listing', listing_id=l['id']) }}" class="btn btn-outline btn-sm btn-block" style="margin-top:8px;">Redaktə et</a>
+        <a href="{{ url_for('vip_options', listing_id=l['id']) }}" class="btn btn-sm btn-block" style="margin-top:6px;background:linear-gradient(135deg,#FFD84D,#F0B90B);color:#3A2A00;">
+          {{ '★ VIP müddətini artır' if l['is_vip_active'] else '★ VIP et' }}
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="empty-state">
+      <p>Hələ heç bir elan yerləşdirməmisiniz.</p>
+      <a href="{{ url_for('new_listing') }}" class="btn btn-outline btn-sm" style="margin-top:10px;">İlk elanınızı yerləşdirin</a>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

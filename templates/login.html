@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}{{ t('auth.login_title') }} — VarAz{% endblock %}
+{% block content %}
+<div class="wrap narrow-form">
+  <div class="form-card">
+    <h1 class="form-page-title" style="font-size:24px;">{{ t('auth.login_title') }}</h1>
+    <p class="form-page-sub">{{ t('auth.login_sub') }}</p>
+    <form method="post">
+      <div class="field">
+        <label>{{ t('auth.phone') }}</label>
+        <input type="text" name="phone" required value="{{ form.phone if form else '' }}">
+      </div>
+      <div class="field">
+        <label>{{ t('auth.password') }}</label>
+        <input type="password" name="password" required>
+        <div style="text-align:right;margin-top:6px;"><a href="{{ url_for('forgot_password') }}" style="font-size:12.5px;color:var(--ink-soft);">Şifrəni unutmusunuz?</a></div>
+      </div>
+      <button type="submit" class="btn btn-brass btn-block">{{ t('auth.login_title') }}</button>
+    </form>
+    <p style="text-align:center;margin-top:18px;font-size:14px;color:var(--ink-soft);">
+      {{ t('auth.no_account') }} <a href="{{ url_for('register') }}" style="color:var(--teal);font-weight:600;">{{ t('auth.register_title') }}</a>
+    </p>
+    <p style="text-align:center;margin-top:10px;font-size:12.5px;color:var(--ink-soft);">
+      Demo: <span class="mono">0501234567</span> / <span class="mono">parol123</span>
+    </p>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block title %}Admin Panel — VarAz{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:32px 0 70px;">
+  <div class="admin-nav">
+    <a href="{{ url_for('admin_dashboard') }}" class="active">Ümumi baxış</a>
+    <a href="{{ url_for('admin_listings') }}">Elanlar</a>
+    <a href="{{ url_for('admin_users') }}">İstifadəçilər</a>
+    <a href="{{ url_for('admin_reports') }}">Şikayətlər {% if stats['pending_reports'] %}<span class="nav-badge">{{ stats['pending_reports'] }}</span>{% endif %}</a>
+  </div>
+
+  <h1 style="font-size:24px;margin:22px 0;">Admin Panel</h1>
+
+  <div class="grid-4" style="margin-bottom:36px;">
+    <div class="how-step" style="text-align:center;">
+      <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:700;">{{ stats['users'] }}</div>
+      <div style="font-size:12.5px;color:var(--ink-soft);">İstifadəçi</div>
+    </div>
+    <div class="how-step" style="text-align:center;">
+      <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:700;">{{ stats['listings'] }}</div>
+      <div style="font-size:12.5px;color:var(--ink-soft);">Aktiv elan</div>
+    </div>
+    <div class="how-step" style="text-align:center;">
+      <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:700;color:var(--gold-deep);">{{ stats['vip_active'] }}</div>
+      <div style="font-size:12.5px;color:var(--ink-soft);">Aktiv VIP</div>
+    </div>
+    <div class="how-step" style="text-align:center;">
+      <div style="font-family:'Inter',sans-serif;font-size:26px;font-weight:700;color:{{ 'var(--danger)' if stats['pending_reports'] else 'var(--ink)' }};">{{ stats['pending_reports'] }}</div>
+      <div style="font-size:12.5px;color:var(--ink-soft);">Baxılmamış şikayət</div>
+    </div>
+  </div>
+
+  <div class="section-head"><h2 style="font-size:18px;margin:0;">Son elanlar</h2></div>
+  <table class="spec-table" style="margin-bottom:32px;">
+    {% for l in recent_listings %}
+    <tr>
+      <td><a href="{{ url_for('listing_detail', listing_id=l['id']) }}">{{ l['title'] }}</a></td>
+      <td>{{ l['price']|money }} {{ l['currency'] }} · {{ l['city'] }} · {{ l['status'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+
+  {% if recent_reports %}
+  <div class="section-head"><h2 style="font-size:18px;margin:0;">Yeni şikayətlər</h2></div>
+  <table class="spec-table">
+    {% for r in recent_reports %}
+    <tr>
+      <td><a href="{{ url_for('listing_detail', listing_id=r['listing_id']) }}">{{ r['listing_title'] }}</a></td>
+      <td>{{ r['reason'] }} — {{ r['reporter_name'] }}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% endif %}
+</div>
+{% endblock %}

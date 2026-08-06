@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+{% block title %}{{ residence['name'] }} — VarAz{% endblock %}
+{% block content %}
+<div class="wrap detail-layout">
+
+  <div>
+    <div class="gallery-main">
+      <img src="{{ images[0]['image_path'] if images else residence['image_path'] }}" alt="{{ residence['name'] }}">
+    </div>
+    {% if images|length > 1 %}
+    <div class="gallery-thumbs">
+      {% for img in images %}<img src="{{ img['image_path'] }}" alt="">{% endfor %}
+    </div>
+    {% endif %}
+
+    <div style="display:flex;align-items:center;gap:12px;margin-top:26px;">
+      {% if residence['logo_path'] %}<img src="{{ residence['logo_path'] }}" alt="" style="width:44px;height:44px;border-radius:10px;flex-shrink:0;">{% endif %}
+      <div>
+        <h1 style="font-size:26px;margin-bottom:2px;">{{ residence['name'] }}</h1>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="testimonial-stars" style="margin-bottom:0;font-size:13px;">{{ '★' * (residence['rating']|round|int) }}{{ '☆' * (5 - (residence['rating']|round|int)) }}</span>
+          <span style="font-size:13px;color:var(--ink-soft);font-weight:600;">{{ '%.1f'|format(residence['rating']) }}</span>
+        </div>
+      </div>
+    </div>
+    <div style="color:var(--ink-soft);font-size:14px;margin-top:8px;">
+      {{ residence['address'] or (residence['district'] ~ ', ' ~ residence['city']) }}
+    </div>
+
+    <p style="margin-top:22px;line-height:1.7;">{{ residence['description'] or 'Təsvir əlavə edilməyib.' }}</p>
+
+    {% if amenities %}
+    <h3 style="font-size:16px;margin-top:26px;">Kompleksin imkanları</h3>
+    <div class="chip-list">
+      {% for a in amenities %}<span class="chip">{{ a }}</span>{% endfor %}
+    </div>
+    {% endif %}
+
+    {% if units %}
+    <h3 style="font-size:16px;margin-top:28px;">Mövcud mənzil tipləri</h3>
+    <table class="spec-table">
+      {% for u in units %}
+      <tr>
+        <td>{{ u['rooms'] }} otaqlı, {{ u['area_m2']|round|int }} m²</td>
+        <td>
+          {% if u['status'] == 'satılıb' %}
+            <span style="color:var(--ink-soft);">Satılıb</span>
+          {% else %}
+            {{ u['price']|money }} AZN
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </table>
+    {% endif %}
+  </div>
+
+  <aside>
+    <div class="side-card">
+      <span class="badge">Yaşayış kompleksi</span>
+      <div class="price mono" style="margin-top:10px;">{{ residence['price_from']|money }} AZN-dən</div>
+      <div style="font-size:13px;color:var(--ink-soft);">Təhvil tarixi: {{ residence['deadline'] }}</div>
+      <div style="font-size:13px;color:var(--ink-soft);margin-top:2px;">{{ active_apartments }} aktiv mənzil</div>
+
+      {% if company %}
+      <a href="{{ url_for('company_detail', slug=company['slug']) }}" class="owner-row" style="text-decoration:none;">
+        {% if company['logo_path'] %}
+          <img src="{{ company['logo_path'] }}" alt="" style="width:42px;height:42px;border-radius:10px;">
+        {% else %}
+          <div class="owner-avatar">{{ (residence['developer'] or residence['name'])[0] }}</div>
+        {% endif %}
+        <div>
+          <div style="font-weight:600;font-size:14.5px;color:var(--ink);">{{ residence['developer'] or residence['name'] }}</div>
+          <div style="font-size:12.5px;color:var(--ink-soft);">Tikinti şirkəti · Profilə bax →</div>
+        </div>
+      </a>
+      {% else %}
+      <div class="owner-row">
+        <div class="owner-avatar">{{ (residence['developer'] or residence['name'])[0] }}</div>
+        <div>
+          <div style="font-weight:600;font-size:14.5px;">{{ residence['developer'] or residence['name'] }}</div>
+          <div style="font-size:12.5px;color:var(--ink-soft);">Tikinti şirkəti</div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if residence['contact_name'] or residence['contact_phone'] %}
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--line);">
+        {% if residence['contact_name'] %}<div style="font-weight:600;font-size:14px;">{{ residence['contact_name'] }}</div>{% endif %}
+        {% if residence['contact_phone'] %}<div class="mono" style="font-size:13px;color:var(--ink-soft);">{{ residence['contact_phone'] }}</div>{% endif %}
+      </div>
+      {% endif %}
+
+      {% if residence['contact_phone'] %}
+      <a href="tel:{{ residence['contact_phone'] }}" class="btn btn-teal btn-block" style="margin-top:16px;">Zəng et</a>
+      {% endif %}
+      {% if current_user %}
+      <a href="{{ url_for('new_listing') }}?residence_id={{ residence['id'] }}" class="btn btn-brass btn-block" style="margin-top:10px;">➕ Bu layihəyə mənzil əlavə et</a>
+      {% endif %}
+    </div>
+  </aside>
+</div>
+
+{% if listings_here %}
+<section class="block tint-teal" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="eyebrow-sm">Satılır / kirayə</span>
+        <h2>{{ residence['name'] }}-də olan elanlar</h2>
+      </div>
+      <span style="font-size:13.5px;color:var(--ink-soft);">{{ listings_here|length }} elan</span>
+    </div>
+    <div class="grid-3">
+      {% for l in listings_here %}{% include "_card.html" %}{% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+{% if similar %}
+<section class="block" style="padding-top:0;">
+  <div class="wrap">
+    <div class="section-head"><h2>Digər layihələr</h2></div>
+    <div class="grid-3">
+      {% for r in similar %}
+      <a href="{{ url_for('residence_detail', slug=r['slug']) }}" class="card">
+        <div class="thumb"><img src="{{ r['image_path'] }}" alt="{{ r['name'] }}" loading="lazy"></div>
+        <div class="body">
+          <div class="price mono">{{ r['price_from']|money }} AZN-dən</div>
+          <div class="title">{{ r['name'] }}</div>
+          <div class="meta">{{ r['district'] }}, {{ r['city'] }}</div>
+        </div>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+{% endblock %}

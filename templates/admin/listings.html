@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Elanlar — Admin{% endblock %}
+{% block content %}
+<div class="wrap" style="padding:32px 0 70px;">
+  <div class="admin-nav">
+    <a href="{{ url_for('admin_dashboard') }}">Ümumi baxış</a>
+    <a href="{{ url_for('admin_listings') }}" class="active">Elanlar</a>
+    <a href="{{ url_for('admin_users') }}">İstifadəçilər</a>
+    <a href="{{ url_for('admin_reports') }}">Şikayətlər</a>
+  </div>
+
+  <div class="section-head" style="margin-top:22px;">
+    <h1 style="font-size:22px;margin:0;">Elanlar ({{ rows|length }})</h1>
+    <form method="get" style="display:flex;gap:8px;">
+      <input type="text" name="q" value="{{ q }}" placeholder="Axtar..." style="width:220px;">
+      <button type="submit" class="btn btn-outline btn-sm">Axtar</button>
+    </form>
+  </div>
+
+  <div style="overflow-x:auto;">
+  <table class="spec-table">
+    <tr style="font-weight:700;font-size:12.5px;color:var(--ink-soft);">
+      <td>Başlıq</td><td>Satıcı</td><td>Qiymət</td><td>Status</td><td>Əməliyyat</td>
+    </tr>
+    {% for l in rows %}
+    <tr>
+      <td><a href="{{ url_for('listing_detail', listing_id=l['id']) }}">{{ l['title'][:40] }}</a></td>
+      <td>{{ l['owner_name'] }}<br><span class="mono" style="font-size:11.5px;color:var(--ink-soft);">{{ l['owner_phone'] }}</span></td>
+      <td>{{ l['price']|money }} {{ l['currency'] }}</td>
+      <td><span class="badge" style="{{ 'background:var(--gold-soft);color:var(--gold-deep);' if l['status']=='active' else 'background:#eee;color:#888;' }}">{{ l['status'] }}</span></td>
+      <td style="display:flex;gap:6px;">
+        <form method="post" action="{{ url_for('admin_toggle_listing_status', listing_id=l['id']) }}">
+          <button type="submit" class="btn btn-outline btn-sm">{{ 'Gizlət' if l['status']=='active' else 'Aktivləşdir' }}</button>
+        </form>
+        <form method="post" action="{{ url_for('admin_delete_listing', listing_id=l['id']) }}" onsubmit="return confirm('Silinsin?');">
+          <button type="submit" class="btn btn-danger btn-sm">Sil</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  </div>
+</div>
+{% endblock %}
