@@ -4,12 +4,14 @@ import sqlite3
 import uuid
 import json
 import re
+from urllib.parse import parse_qsl, urlencode
 from functools import wraps
 
 from flask import (Flask, g, render_template, request, redirect, url_for,
                     session, flash, jsonify, abort)
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
+from werkzeug.datastructures import MultiDict
 from translations import get_translator, LANGUAGES
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -23,6 +25,9 @@ with open(os.path.join(BASE_DIR, "data", "locations.json"), encoding="utf-8") as
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("VARAZ_SECRET_KEY", "dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024  # 12 MB per request
+if not os.path.exists(DB_PATH):
+    import seed as _seed
+    _seed.main()
 
 PROPERTY_CATEGORIES = ["mənzil", "həyət evi/bağ evi", "ofis", "qaraj", "torpaq", "obyekt", "xaricdə evlər"]
 VEHICLE_CATEGORIES = ["minik", "suv", "moto", "pikap", "furqon", "kommersiya", "ehtiyat hissələri"]
@@ -89,6 +94,15 @@ def get_db():
         g.db = sqlite3.connect(DB_PATH)
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
+        g.db.execute("""CREATE TABLE IF NOT EXISTS saved_searches (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            query_string TEXT NOT NULL,
+            last_checked_at TEXT NOT NULL DEFAULT (datetime('now')),
+            created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )""")
+        g.db.commit()
     return g.db
 
 
@@ -492,6 +506,27 @@ def build_listing_query(args):
     return sql, count_sql, params
 
 
+def notify_saved_searches(listing_id):
+    """Create an in-app notification for every saved search matching a new listing."""
+    db = get_db()
+    listing = db.execute("SELECT title FROM listings WHERE id=?", (listing_id,)).fetchone()
+    if listing is None:
+        return
+    searches = db.execute("SELECT * FROM saved_searches").fetchall()
+    for saved in searches:
+        args = MultiDict(parse_qsl(saved["query_string"], keep_blank_values=True))
+        sql, _, params = build_listing_query(args)
+        matched = db.execute(f"SELECT 1 FROM ({sql}) AS matching WHERE id=? LIMIT 1", params + [listing_id]).fetchone()
+        if not matched:
+            continue
+        message = f'"{listing["title"]}" saxlanmış "{saved["name"]}" axtarışınıza uyğundur.'
+        db.execute(
+            "INSERT INTO notifications(user_id, listing_id, message) VALUES (?,?,?)",
+            (saved["user_id"], listing_id, message),
+        )
+        db.execute("UPDATE saved_searches SET last_checked_at=datetime('now') WHERE id=?", (saved["id"],))
+
+
 # ------------------------------------------------------------------ pages
 
 @app.route("/")
@@ -787,14 +822,54 @@ def listings():
             "vehicle_listings.html", rows=rows, cities=cities, categories=categories,
             args=request.args, result_count=total_count,
             page=page, total_pages=total_pages, colors_available=colors_available,
-            matched_residence=matched_residence,
+            matched_residence=matched_residence, search_query_string=request.query_string.decode("utf-8"),
         )
 
     return render_template(
         "listings.html", rows=rows, cities=cities, categories=categories,
         args=request.args, result_count=total_count,
         page=page, total_pages=total_pages, matched_residence=matched_residence,
+        search_query_string=request.query_string.decode("utf-8"),
     )
+
+
+@app.route("/axtaris/saxla", methods=["POST"])
+@login_required
+def save_search():
+    raw_query = request.form.get("query_string", "")
+    pairs = [(key, value) for key, value in parse_qsl(raw_query, keep_blank_values=True)
+             if key not in ("page", "sort") and value]
+    if not pairs:
+        flash("Saxlamaq üçün ən azı bir filtr seçin.", "error")
+        return redirect(url_for("listings"))
+    query_string = urlencode(pairs, doseq=True)
+    name = request.form.get("name", "").strip()[:70] or "Yeni elan axtarışı"
+    db = get_db()
+    user = current_user()
+    existing = db.execute(
+        "SELECT id FROM saved_searches WHERE user_id=? AND query_string=?", (user["id"], query_string)
+    ).fetchone()
+    if existing:
+        flash("Bu axtarış artıq yadda saxlanılıb.", "success")
+    else:
+        db.execute(
+            "INSERT INTO saved_searches(user_id, name, query_string) VALUES (?,?,?)",
+            (user["id"], name, query_string),
+        )
+        db.commit()
+        flash("Axtarış yadda saxlanıldı. Yeni uyğun elan çıxanda bildiriş alacaqsınız.", "success")
+    return redirect(request.referrer or url_for("listings"))
+
+
+@app.route("/axtaris/<int:search_id>/sil", methods=["POST"])
+@login_required
+def delete_saved_search(search_id):
+    db = get_db()
+    user = current_user()
+    db.execute("DELETE FROM saved_searches WHERE id=? AND user_id=?", (search_id, user["id"]))
+    db.commit()
+    flash("Saxlanmış axtarış silindi.", "success")
+    return redirect(url_for("notifications_page"))
 
 
 @app.route("/elan/<int:listing_id>")
@@ -1003,6 +1078,7 @@ def new_listing():
             (listing_id, placeholder),
         )
 
+    notify_saved_searches(listing_id)
     db.commit()
     flash("Elanınız uğurla yerləşdirildi.", "success")
     return redirect(url_for("listing_detail", listing_id=listing_id))
@@ -1458,9 +1534,12 @@ def notifications_page():
     rows = db.execute(
         "SELECT * FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50", (user["id"],)
     ).fetchall()
+    saved_searches = db.execute(
+        "SELECT * FROM saved_searches WHERE user_id=? ORDER BY created_at DESC", (user["id"],)
+    ).fetchall()
     db.execute("UPDATE notifications SET is_read=1 WHERE user_id=?", (user["id"],))
     db.commit()
-    return render_template("notifications.html", rows=rows)
+    return render_template("notifications.html", rows=rows, saved_searches=saved_searches)
 
 
 
@@ -1951,7 +2030,4 @@ def not_found(e):
 
 
 if __name__ == "__main__":
-    if not os.path.exists(DB_PATH):
-        import seed
-        seed.main()
     app.run(debug=True, host="0.0.0.0", port=5000)
