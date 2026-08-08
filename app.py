@@ -4,14 +4,12 @@ import sqlite3
 import uuid
 import json
 import re
-from urllib.parse import parse_qsl, urlencode
 from functools import wraps
 
 from flask import (Flask, g, render_template, request, redirect, url_for,
                     session, flash, jsonify, abort)
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
-from werkzeug.datastructures import MultiDict
 from translations import get_translator, LANGUAGES
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -25,6 +23,11 @@ with open(os.path.join(BASE_DIR, "data", "locations.json"), encoding="utf-8") as
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("VARAZ_SECRET_KEY", "dev-secret-change-me")
 app.config["MAX_CONTENT_LENGTH"] = 12 * 1024 * 1024  # 12 MB per request
+
+# Baza mövcud deyilsə yarat + doldur. Bu, modul YÜKLƏNƏNDƏ (import zamanı) işə düşür,
+# ona görə "python app.py" ilə də, gunicorn (Render/production) ilə də düzgün işləyir —
+# gunicorn __main__ blokunu heç vaxt icra etmir, ona görə bu məntiq əvvəllər Render-də
+# ötürülürdü və verilənlər bazası yaranmırdı (500 Internal Server Error səbəbi).
 if not os.path.exists(DB_PATH):
     import seed as _seed
     _seed.main()
@@ -94,15 +97,6 @@ def get_db():
         g.db = sqlite3.connect(DB_PATH)
         g.db.row_factory = sqlite3.Row
         g.db.execute("PRAGMA foreign_keys = ON")
-        g.db.execute("""CREATE TABLE IF NOT EXISTS saved_searches (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-            name TEXT NOT NULL,
-            query_string TEXT NOT NULL,
-            last_checked_at TEXT NOT NULL DEFAULT (datetime('now')),
-            created_at TEXT NOT NULL DEFAULT (datetime('now'))
-        )""")
-        g.db.commit()
     return g.db
 
 
@@ -216,6 +210,55 @@ def send_sms(phone, message):
     shown directly on-screen in this dev/demo environment."""
     print(f"[sms-sim] to={phone!r}\n{message}\n")
     return False
+
+
+# ------------------------------------------------------------------ payment gateway
+# Kapital Bank / Birbank-in onlayn kart odenisi mehsulu "MilliOn" adlanir (basqa
+# alternativ: Payriff, EPoint). Merchant hesabi tesdiqlenende bank senden bunlari
+# verecek: MERCHANT_ID, SECRET_KEY, ve API sened linki (checkout/order yaratma,
+# status yoxlama, ve callback imza yoxlamasi ucun deqiq sorgu format).
+#
+# Bu funksiyalar hazirda hec bir prov ayder qosulmadigi ucun avtomatik "test rejimi"nde
+# islэyir (odenis aninda "ugurlu" hesab olunur, VIP dеrhal aktivlesir) - saytin demo
+# testi ucun problemsiz davam edir. Real acarlar geldikde, asagidaki iki funksiyani
+# bankin sened nusxesine uygun doldurmaq kifayetdir - qalan butun axin (route-lar,
+# DB, VIP aktivlesdirme) deyismir.
+PAYMENT_MERCHANT_ID = os.environ.get("PAYMENT_MERCHANT_ID")
+PAYMENT_SECRET_KEY = os.environ.get("PAYMENT_SECRET_KEY")
+PAYMENT_PROVIDER_NAME = os.environ.get("PAYMENT_PROVIDER", "million")
+
+
+def payment_gateway_configured():
+    return bool(PAYMENT_MERCHANT_ID and PAYMENT_SECRET_KEY)
+
+
+def create_gateway_checkout(payment_id, amount, currency, description, return_url):
+    """Bankin odenis sehifesini yaratmaq ucun sorgu gonderir, istifadecinin
+    yonlendirilecegi tam URL-i qaytarir. Real inteqrasiya ucun:
+      1. Bankin sened nusxesindeki 'create order' endpoint-ini cagir
+         (adeten: merchant_id, amount, currency, description, callback_url,
+         return_url, ve HMAC/SHA imza teleb olunur).
+      2. Cavabda gelen 'payment_url' / 'redirect_url' deyerini qaytar.
+    Hazirda provayder qosulmadigi ucun None qaytarilir - caginci funksiya
+    bunu gorende avtomatik test-rejimine kecir."""
+    if not payment_gateway_configured():
+        return None
+    # TODO: bank senedleri gelende burani doldur, meselen:
+    # import requests, hmac, hashlib
+    # payload = {"merchant": PAYMENT_MERCHANT_ID, "amount": amount, "currency": currency,
+    #            "description": description, "callbackUrl": url_for("payment_webhook", _external=True),
+    #            "returnUrl": return_url, "orderId": str(payment_id)}
+    # signature = hmac.new(PAYMENT_SECRET_KEY.encode(), json.dumps(payload).encode(), hashlib.sha256).hexdigest()
+    # resp = requests.post("https://<bank-api-host>/api/orders", json=payload, headers={"X-Signature": signature})
+    # return resp.json().get("paymentUrl")
+    return None
+
+
+def verify_gateway_callback(request_obj):
+    """Bankdan gelen callback/webhook-un imzasini/hesabatini yoxlayir.
+    Return: (is_valid, gateway_ref, status) - status 'paid' ve ya 'failed'.
+    TODO: bank senedleri gelende imza yoxlama mentiqini burda tetbiq et."""
+    return False, None, "failed"
 
 
 def get_recently_viewed(exclude_id=None, limit=8):
@@ -504,27 +547,6 @@ def build_listing_query(args):
     """
     count_sql = f"SELECT COUNT(*) AS cnt FROM listings l WHERE {' AND '.join(where)}"
     return sql, count_sql, params
-
-
-def notify_saved_searches(listing_id):
-    """Create an in-app notification for every saved search matching a new listing."""
-    db = get_db()
-    listing = db.execute("SELECT title FROM listings WHERE id=?", (listing_id,)).fetchone()
-    if listing is None:
-        return
-    searches = db.execute("SELECT * FROM saved_searches").fetchall()
-    for saved in searches:
-        args = MultiDict(parse_qsl(saved["query_string"], keep_blank_values=True))
-        sql, _, params = build_listing_query(args)
-        matched = db.execute(f"SELECT 1 FROM ({sql}) AS matching WHERE id=? LIMIT 1", params + [listing_id]).fetchone()
-        if not matched:
-            continue
-        message = f'"{listing["title"]}" saxlanmış "{saved["name"]}" axtarışınıza uyğundur.'
-        db.execute(
-            "INSERT INTO notifications(user_id, listing_id, message) VALUES (?,?,?)",
-            (saved["user_id"], listing_id, message),
-        )
-        db.execute("UPDATE saved_searches SET last_checked_at=datetime('now') WHERE id=?", (saved["id"],))
 
 
 # ------------------------------------------------------------------ pages
@@ -822,54 +844,14 @@ def listings():
             "vehicle_listings.html", rows=rows, cities=cities, categories=categories,
             args=request.args, result_count=total_count,
             page=page, total_pages=total_pages, colors_available=colors_available,
-            matched_residence=matched_residence, search_query_string=request.query_string.decode("utf-8"),
+            matched_residence=matched_residence,
         )
 
     return render_template(
         "listings.html", rows=rows, cities=cities, categories=categories,
         args=request.args, result_count=total_count,
         page=page, total_pages=total_pages, matched_residence=matched_residence,
-        search_query_string=request.query_string.decode("utf-8"),
     )
-
-
-@app.route("/axtaris/saxla", methods=["POST"])
-@login_required
-def save_search():
-    raw_query = request.form.get("query_string", "")
-    pairs = [(key, value) for key, value in parse_qsl(raw_query, keep_blank_values=True)
-             if key not in ("page", "sort") and value]
-    if not pairs:
-        flash("Saxlamaq üçün ən azı bir filtr seçin.", "error")
-        return redirect(url_for("listings"))
-    query_string = urlencode(pairs, doseq=True)
-    name = request.form.get("name", "").strip()[:70] or "Yeni elan axtarışı"
-    db = get_db()
-    user = current_user()
-    existing = db.execute(
-        "SELECT id FROM saved_searches WHERE user_id=? AND query_string=?", (user["id"], query_string)
-    ).fetchone()
-    if existing:
-        flash("Bu axtarış artıq yadda saxlanılıb.", "success")
-    else:
-        db.execute(
-            "INSERT INTO saved_searches(user_id, name, query_string) VALUES (?,?,?)",
-            (user["id"], name, query_string),
-        )
-        db.commit()
-        flash("Axtarış yadda saxlanıldı. Yeni uyğun elan çıxanda bildiriş alacaqsınız.", "success")
-    return redirect(request.referrer or url_for("listings"))
-
-
-@app.route("/axtaris/<int:search_id>/sil", methods=["POST"])
-@login_required
-def delete_saved_search(search_id):
-    db = get_db()
-    user = current_user()
-    db.execute("DELETE FROM saved_searches WHERE id=? AND user_id=?", (search_id, user["id"]))
-    db.commit()
-    flash("Saxlanmış axtarış silindi.", "success")
-    return redirect(url_for("notifications_page"))
 
 
 @app.route("/elan/<int:listing_id>")
@@ -1078,7 +1060,6 @@ def new_listing():
             (listing_id, placeholder),
         )
 
-    notify_saved_searches(listing_id)
     db.commit()
     flash("Elanınız uğurla yerləşdirildi.", "success")
     return redirect(url_for("listing_detail", listing_id=listing_id))
@@ -1175,7 +1156,7 @@ def edit_listing(listing_id):
                 (price, w["user_id"], listing_id),
             )
             if w["email"]:
-                send_email(w["email"], "VarAz — Qiymət düşdü!", msg + f"\n\nElana baxın: /elan/{listing_id}")
+                send_email(w["email"], "VarVar.az — Qiymət düşdü!", msg + f"\n\nElana baxın: /elan/{listing_id}")
 
     if listing["type"] == "emlak":
         db.execute(
@@ -1295,16 +1276,41 @@ def vip_purchase(listing_id, package):
     pkg = VIP_PACKAGES[package]
     user = current_user()
 
-    # NOT: bu, real odenis deyil -- test/simulyasiya rejimidir.
-    # Real provayder (Payriff / EPoint / basqa) qosulanda, burada
-    # provayderin ravi API-sine yonlendirme ve callback-de bu kodun
-    # ise dusmesi lazimdir (asagidaki INSERT + UPDATE hissesi).
     cur = db.execute(
-        """INSERT INTO payments(listing_id, user_id, package, amount, currency, status, provider, paid_at)
-           VALUES (?,?,?,?,?,?,?,datetime('now'))""",
-        (listing_id, user["id"], package, pkg["price"], "AZN", "paid", "test"),
+        """INSERT INTO payments(listing_id, user_id, package, amount, currency, status, provider)
+           VALUES (?,?,?,?,?,?,?)""",
+        (listing_id, user["id"], package, pkg["price"], "AZN", "pending",
+         PAYMENT_PROVIDER_NAME if payment_gateway_configured() else "test"),
     )
+    payment_id = cur.lastrowid
+    db.commit()
 
+    if payment_gateway_configured():
+        return_url = url_for("payment_return", payment_id=payment_id, _external=True)
+        checkout_url = create_gateway_checkout(
+            payment_id, pkg["price"], "AZN",
+            f"VarVar.az VIP — {pkg['label']} (elan #{listing_id})", return_url,
+        )
+        if checkout_url:
+            return redirect(checkout_url)
+        # Provayder qosulub amma sorgu ugursuz oldu - deyil test rejimine dusmur,
+        # aciq xeta gosterilir ki, real pul itkisi/qarisiqliq olmasin.
+        db.execute("UPDATE payments SET status='failed' WHERE id=?", (payment_id,))
+        db.commit()
+        flash("Ödəniş sistemi ilə əlaqədə xəta baş verdi. Bir az sonra yenidən cəhd edin.", "error")
+        return redirect(url_for("vip_options", listing_id=listing_id))
+
+    # ---- Test rejimi: provayder acarlari qosulmayib, odenis aninda "ugurlu" sayilir ----
+    db.execute(
+        "UPDATE payments SET status='paid', paid_at=datetime('now') WHERE id=?", (payment_id,)
+    )
+    _activate_vip(db, listing_id, pkg["days"])
+    db.commit()
+    flash(f"Elan {pkg['label']} müddətinə VIP edildi! (test ödənişi — real bank hələ qoşulmayıb)", "success")
+    return redirect(url_for("listing_detail", listing_id=listing_id))
+
+
+def _activate_vip(db, listing_id, days):
     db.execute(
         """UPDATE listings SET is_vip=1,
                vip_expires_at = datetime(
@@ -1313,11 +1319,54 @@ def vip_purchase(listing_id, package):
                    '+' || ? || ' days'
                )
            WHERE id=?""",
-        (pkg["days"], listing_id),
+        (days, listing_id),
     )
+
+
+@app.route("/odenis/geri-qayit/<int:payment_id>")
+@login_required
+def payment_return(payment_id):
+    """Bank odenisden sonra istifadeciyi bu unvana yonlendirir. Real inteqrasiyada
+    burada bankin 'status yoxlama' API-si cagirilib odenisin heqiqeten ugurlu
+    oldugu tesdiqlenmelidir (yalniz geri-qayit URL-ine adam gelmesi kifayet etmir,
+    saxtakarligin qarsisini almaq ucun). Hazirda webhook (payment_webhook) esas
+    tesdiq menbeyi olacaq; bu route sadece istifadeciye neticeni gostermek ucundur."""
+    db = get_db()
+    payment = db.execute("SELECT * FROM payments WHERE id=?", (payment_id,)).fetchone()
+    if payment is None or payment["user_id"] != current_user()["id"]:
+        abort(404)
+    if payment["status"] == "paid":
+        flash("Ödəniş uğurla tamamlandı, elan VIP edildi!", "success")
+    elif payment["status"] == "pending":
+        flash("Ödəniş hələ təsdiqlənir, bir neçə dəqiqəyə yenilənəcək.", "success")
+    else:
+        flash("Ödəniş uğursuz oldu və ya ləğv edildi.", "error")
+    return redirect(url_for("listing_detail", listing_id=payment["listing_id"]))
+
+
+@app.route("/odenis/bildiris", methods=["POST"])
+def payment_webhook():
+    """Bankin asinxron bildiris (webhook/IPN) unvani - odenis statusu deyisende
+    bank bu URL-e serverdən-serverə sorgu gonderir. Bu, esas ve etibarli
+    tesdiqleme menbeyidir (istifadecinin brauzeri deyil)."""
+    db = get_db()
+    is_valid, gateway_ref, status = verify_gateway_callback(request)
+    if not is_valid:
+        return jsonify({"ok": False}), 400
+
+    payment = db.execute("SELECT * FROM payments WHERE gateway_ref=?", (gateway_ref,)).fetchone()
+    if payment is None:
+        return jsonify({"ok": False, "error": "unknown payment"}), 404
+
+    if status == "paid" and payment["status"] != "paid":
+        db.execute(
+            "UPDATE payments SET status='paid', paid_at=datetime('now') WHERE id=?", (payment["id"],)
+        )
+        _activate_vip(db, payment["listing_id"], VIP_PACKAGES[payment["package"]]["days"])
+    elif status == "failed":
+        db.execute("UPDATE payments SET status='failed' WHERE id=?", (payment["id"],))
     db.commit()
-    flash(f"Elan {pkg['label']} müddətinə VIP edildi! (test ödənişi)", "success")
-    return redirect(url_for("listing_detail", listing_id=listing_id))
+    return jsonify({"ok": True})
 
 
 @app.route("/elanlarim")
@@ -1534,12 +1583,9 @@ def notifications_page():
     rows = db.execute(
         "SELECT * FROM notifications WHERE user_id=? ORDER BY created_at DESC LIMIT 50", (user["id"],)
     ).fetchall()
-    saved_searches = db.execute(
-        "SELECT * FROM saved_searches WHERE user_id=? ORDER BY created_at DESC", (user["id"],)
-    ).fetchall()
     db.execute("UPDATE notifications SET is_read=1 WHERE user_id=?", (user["id"],))
     db.commit()
-    return render_template("notifications.html", rows=rows, saved_searches=saved_searches)
+    return render_template("notifications.html", rows=rows)
 
 
 
@@ -1884,7 +1930,7 @@ def register():
     session["user_id"] = cur.lastrowid
 
     code = create_verification_code(cur.lastrowid)
-    sent = send_sms(phone, f"VarAz təsdiq kodunuz: {code}")
+    sent = send_sms(phone, f"VarVar.az təsdiq kodunuz: {code}")
     if not sent:
         session["dev_sms_code"] = code  # dev/demo fallback so the flow stays testable
     flash("Xoş gəldiniz! Telefon nömrənizi təsdiqləyin.", "success")
@@ -1925,7 +1971,7 @@ def verify_phone():
 def resend_verification():
     user = current_user()
     code = create_verification_code(user["id"])
-    sent = send_sms(user["phone"], f"VarAz təsdiq kodunuz: {code}")
+    sent = send_sms(user["phone"], f"VarVar.az təsdiq kodunuz: {code}")
     if not sent:
         session["dev_sms_code"] = code
     flash("Yeni kod göndərildi.", "success")
@@ -1958,7 +2004,7 @@ def forgot_password():
         body = f"Şifrənizi sıfırlamaq üçün bu linkə klikləyin (1 saat etibarlıdır):\n{reset_url}"
         sent = False
         if user["email"]:
-            sent = send_email(user["email"], "VarAz — Şifrə sıfırlama", body)
+            sent = send_email(user["email"], "VarVar.az — Şifrə sıfırlama", body)
         if not sent:
             session["dev_reset_url"] = reset_url  # dev/demo fallback
 

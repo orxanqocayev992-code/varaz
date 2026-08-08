@@ -1,4 +1,4 @@
-# VarAz — Əmlak və Nəqliyyat Elanları Platforması
+# VarVar.az — Əmlak və Nəqliyyat Elanları Platforması
 
 Bina.az və Turbo.az-ın funksionallığını birləşdirən, tam işlək **backend + verilənlər bazası**
 olan elanlar saytı. Python/Flask + SQLite üzərində qurulub, orijinal marka dizaynı ilə.

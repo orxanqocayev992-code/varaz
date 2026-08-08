@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-"""VarAz UI tərcümələri (AZ / RU / EN). İstifadəçi elanlarının məzmunu tərcümə olunmur —
+"""VarVar.az UI tərcümələri (AZ / RU / EN). İstifadəçi elanlarının məzmunu tərcümə olunmur —
 yalnız sayt interfeysi (naviqasiya, düymələr, başlıqlar, filtrlər)."""
 
 TRANSLATIONS = {
@@ -23,7 +23,7 @@ TRANSLATIONS = {
 
         "hero.eyebrow": "Azərbaycanın yeni nəsil bazarı",
         "hero.heading": "Həyatınızın ən böyük iki qərarı — bir ünvanda, bir açarda.",
-        "hero.lead": "VarAz-da minlərlə yoxlanılmış əmlak və nəqliyyat elanı bir yerdə. Qərar sizin, asanlaşdırmaq bizim işimizdir.",
+        "hero.lead": "VarVar.az-da minlərlə yoxlanılmış əmlak və nəqliyyat elanı bir yerdə. Qərar sizin, asanlaşdırmaq bizim işimizdir.",
         "hero.tab_emlak": "Əmlak",
         "hero.tab_neqliyyat": "Nəqliyyat",
         "hero.tab_xaricde": "Xaricdə evlər",
@@ -81,7 +81,7 @@ TRANSLATIONS = {
         "reviews.heading": "İstifadəçilərimiz nə deyir?",
         "reviews.write": "✎ Rəy yazın",
 
-        "footer.rights": "© 2026 VarAz — Əmlak və nəqliyyat elanları bir açarda.",
+        "footer.rights": "© 2026 VarVar.az — Əmlak və nəqliyyat elanları bir açarda.",
 
         "filter.title": "Filtrlə",
         "filter.type": "Növ",
@@ -151,7 +151,7 @@ TRANSLATIONS = {
 
         "hero.eyebrow": "Маркетплейс нового поколения в Азербайджане",
         "hero.heading": "Два главных решения в вашей жизни — в одном месте.",
-        "hero.lead": "На VarAz тысячи проверенных объявлений о недвижимости и транспорте. Решение за вами, а мы всё упрощаем.",
+        "hero.lead": "На VarVar.az тысячи проверенных объявлений о недвижимости и транспорте. Решение за вами, а мы всё упрощаем.",
         "hero.tab_emlak": "Недвижимость",
         "hero.tab_neqliyyat": "Транспорт",
         "hero.tab_xaricde": "Жильё за рубежом",
@@ -209,7 +209,7 @@ TRANSLATIONS = {
         "reviews.heading": "Что говорят наши пользователи?",
         "reviews.write": "✎ Оставить отзыв",
 
-        "footer.rights": "© 2026 VarAz — Недвижимость и транспорт в одном месте.",
+        "footer.rights": "© 2026 VarVar.az — Недвижимость и транспорт в одном месте.",
 
         "filter.title": "Фильтр",
         "filter.type": "Тип",
@@ -279,7 +279,7 @@ TRANSLATIONS = {
 
         "hero.eyebrow": "Azerbaijan's next-generation marketplace",
         "hero.heading": "The two biggest decisions in life — in one place.",
-        "hero.lead": "Thousands of verified property and vehicle listings on VarAz. The decision is yours — we make it easy.",
+        "hero.lead": "Thousands of verified property and vehicle listings on VarVar.az. The decision is yours — we make it easy.",
         "hero.tab_emlak": "Property",
         "hero.tab_neqliyyat": "Vehicles",
         "hero.tab_xaricde": "Homes abroad",
@@ -337,7 +337,7 @@ TRANSLATIONS = {
         "reviews.heading": "What our users say",
         "reviews.write": "✎ Write a review",
 
-        "footer.rights": "© 2026 VarAz — Property and vehicle listings, all in one key.",
+        "footer.rights": "© 2026 VarVar.az — Property and vehicle listings, all in one key.",
 
         "filter.title": "Filter",
         "filter.type": "Type",

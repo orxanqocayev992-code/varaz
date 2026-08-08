@@ -1,4 +1,4 @@
-"""VarAz -- verilenler bazasini yaradir ve numune elanlarla doldurur."""
+"""VarVar.az -- verilenler bazasini yaradir ve numune elanlarla doldurur."""
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash
@@ -48,7 +48,7 @@ USERS = [
     ("Elvin Məmmədov", "0501234567", "elvin@example.com", "parol123"),
     ("Aysel Quliyeva", "0552345678", "aysel@example.com", "parol123"),
     ("Rəşad Əliyev", "0703456789", "resad@example.com", "parol123"),
-    ("VarAz Admin", "0702773533", "azvar2026@gmail.com", "danger352943"),
+    ("VarVar.az Admin", "0702773533", "azvar2026@gmail.com", "danger352943"),
 ]
 ADMIN_USER_INDEX = 3
 

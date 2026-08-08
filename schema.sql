@@ -198,7 +198,8 @@ CREATE TABLE payments (
     amount REAL NOT NULL,
     currency TEXT NOT NULL DEFAULT 'AZN',
     status TEXT NOT NULL DEFAULT 'pending',  -- pending | paid | failed
-    provider TEXT NOT NULL DEFAULT 'test',   -- test | payriff | epoint | ...
+    provider TEXT NOT NULL DEFAULT 'test',   -- test | million | payriff | epoint | ...
+    gateway_ref TEXT,                        -- bankin sifariş/tranzaksiya ID-si (callback yoxlaması üçün)
     created_at TEXT NOT NULL DEFAULT (datetime('now')),
     paid_at TEXT
 );

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{% block title %}VarAz — Əmlak və Nəqliyyat Elanları{% endblock %}</title>
+<title>{% block title %}VarVar.az — Əmlak və Nəqliyyat Elanları{% endblock %}</title>
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 {% block extra_head %}{% endblock %}
 </head>
@@ -13,7 +13,7 @@
   <div class="wrap bar">
     <a href="{{ url_for('home') }}" class="logo">
       <span class="brand-mark">V</span>
-      <span>VarAz<small>{{ t('tagline') }}</small></span>
+      <span>VarVar.az<small>{{ t('tagline') }}</small></span>
     </a>
     <nav class="main-nav" id="mainNav">
       <a href="{{ url_for('listings', type='emlak') }}" class="{{ 'active' if request.path=='/elanlar' and request.args.get('type')=='emlak' }}">{{ t('nav.emlak') }}</a>
@@ -97,7 +97,7 @@
     <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;">
       <div class="logo" style="font-size:16px;">
         <span class="brand-mark sm">V</span>
-        VarAz
+        VarVar.az
       </div>
       <div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px;">
         <a href="{{ url_for('projects_list') }}">{{ t('projects.heading') }}</a>
